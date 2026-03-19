@@ -529,9 +529,29 @@ function toggleDoneHome(week, dayIdx) {
   if (!dbState[key]) dbState[key] = {};
   const newDone = !dbState[key].done;
   dbState[key].done = newDone;
-  loadHomeData();
-  setTimeout(render, 0);
+
+  // Direct DOM update — geen innerHTML rebuild zodat iOS de touch niet kwijtraakt
+  const card = document.querySelector(`.upcoming-card[data-week="${week}"][data-dayidx="${dayIdx}"]`);
+  if (card) {
+    const check = card.querySelector('.uc-check');
+    const type = card.dataset.type || 'lopen';
+    check.textContent = newDone ? '✓' : '';
+    check.className = 'uc-check ' + (newDone ? 'done' : (type === 'fietsen' ? 'fietsen-todo' : 'todo'));
+    card.classList.toggle('uc-done', newDone);
+  }
+
+  // Progress bar bovenin updaten
+  const week_ = BASE_WEEKS[currentWeek];
+  const runDays = week_.filter(d => d.type !== 'fietsen' && d.type !== 'rust');
+  const doneDays = runDays.filter((d, i) => getDs(currentWeek, week_.indexOf(d)).done);
+  const pct = runDays.length ? Math.round(doneDays.length / runDays.length * 100) : 0;
+  const fill = document.getElementById('hwc-fill');
+  const frac = document.getElementById('hwc-fraction');
+  if (fill) fill.style.width = pct + '%';
+  if (frac) frac.textContent = doneDays.length + ' / ' + runDays.length + ' sessies';
+
   saveRow(week, dayIdx, { done: newDone });
+  setTimeout(render, 0);
   if (newDone) {
     const c = COMP_DAY[Math.floor(Math.random() * COMP_DAY.length)];
     toast(c[0], c[1]);
@@ -739,7 +759,7 @@ function loadHomeData() {
     const isToday = smartDate === 'Vandaag';
     const displayDay = (smartDate === 'Vandaag' || smartDate === 'Morgen') ? smartDate : item.day;
     const displayDate = getDayDate(item.week, item.dayIdx);
-    return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''} ${isToday ? 'uc-today' : ''}">
+    return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''} ${isToday ? 'uc-today' : ''}" data-week="${item.week}" data-dayidx="${item.dayIdx}" data-type="${item.type}">
       <button class="uc-check-btn" onclick="toggleDoneHome(${item.week}, ${item.dayIdx})">
         <span class="uc-check ${checkClass}">${checkIcon}</span>
       </button>
