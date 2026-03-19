@@ -133,7 +133,8 @@ function applyTheme(theme) {
 
 async function loadProfile() {
   if (!currentUser) return;
-  userProfile = currentUser.user_metadata || {};
+  const { data } = await sb.from('profiles').select('*').eq('user_id', currentUser.id).single();
+  userProfile = data || {};
   applyTheme(userProfile.theme || localStorage.getItem('theme') || 'dark');
   renderHeaderAvatar();
 }
@@ -237,20 +238,18 @@ async function saveProfile() {
     }
   }
 
-  let data, error;
-  try {
-    ({ data, error } = await sb.auth.updateUser({ data: updates }));
-  } catch (e) {
-    btn.textContent = 'Opslaan';
-    btn.disabled = false;
-    toast('❌ Fout', e.message || 'Onbekende fout');
-    return;
-  }
+  const row = {
+    user_id: currentUser.id,
+    name: updates.name || null,
+    status: updates.status || null,
+    theme: updates.theme || 'dark',
+    avatar_url: updates.avatar_url || userProfile.avatar_url || null,
+  };
+  const { error } = await sb.from('profiles').upsert(row, { onConflict: 'user_id' });
   btn.textContent = 'Opslaan';
   btn.disabled = false;
   if (error) { toast('❌ Fout', error.message); return; }
-  currentUser = data.user;
-  userProfile = data.user.user_metadata;
+  userProfile = row;
   pendingAvatarFile = null;
   renderHeaderAvatar();
   closeSettings();
