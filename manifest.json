@@ -1,0 +1,19 @@
+{
+  "name": "Hardloop Tracker",
+  "short_name": "Tracker",
+  "description": "Track je hardlooproutes met GPS",
+  "start_url": "tracker.html",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f0f",
+  "theme_color": "#F4631E",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
