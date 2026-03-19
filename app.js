@@ -1003,31 +1003,30 @@ function confetti() {
     else changeWeek(-1);
   }, { passive: true });
 
-  // Swipe op home: visuele feedback tijdens drag
+  // Swipe op home: hele pagina detecteert swipe, visuele feedback op week-card
+  const homePage = document.getElementById('page-home');
   const weekCard = document.querySelector('.home-week-card');
   const upcomingList = document.getElementById('home-upcoming');
-  if (!weekCard) return;
+  if (!homePage) return;
 
-  let startX = 0, startY = 0, dragging = false, isHoriz = null;
+  let startX = 0, startY = 0, isHoriz = null;
 
-  weekCard.addEventListener('touchstart', e => {
+  homePage.addEventListener('touchstart', e => {
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
-    dragging = true;
     isHoriz = null;
-    weekCard.style.transition = 'none';
+    if (weekCard) weekCard.style.transition = 'none';
     if (upcomingList) upcomingList.style.transition = 'none';
   }, { passive: true });
 
-  weekCard.addEventListener('touchmove', e => {
-    if (!dragging) return;
+  homePage.addEventListener('touchmove', e => {
     const dx = e.touches[0].clientX - startX;
     const dy = e.touches[0].clientY - startY;
     if (isHoriz === null) {
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
       isHoriz = Math.abs(dx) > Math.abs(dy);
     }
-    if (!isHoriz) return;
+    if (!isHoriz || !weekCard) return;
     const clamped = Math.max(-120, Math.min(120, dx));
     const factor = 1 - Math.abs(clamped) / 300;
     weekCard.style.transform = `translateX(${clamped * 0.4}px) scale(${0.97 + factor * 0.03})`;
@@ -1036,20 +1035,21 @@ function confetti() {
   }, { passive: true });
 
   function snapBack() {
-    weekCard.style.transition = 'transform 0.25s cubic-bezier(.4,0,.2,1)';
-    weekCard.style.transform = '';
+    if (weekCard) {
+      weekCard.style.transition = 'transform 0.25s cubic-bezier(.4,0,.2,1)';
+      weekCard.style.transform = '';
+    }
     if (upcomingList) {
       upcomingList.style.transition = 'transform 0.25s cubic-bezier(.4,0,.2,1), opacity 0.25s';
       upcomingList.style.transform = '';
       upcomingList.style.opacity = '';
     }
-    dragging = false;
   }
 
-  weekCard.addEventListener('touchend', e => {
-    if (!dragging || !isHoriz) { snapBack(); return; }
+  homePage.addEventListener('touchend', e => {
     const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) >= 55) {
+    const dy = e.changedTouches[0].clientY - startY;
+    if (isHoriz && Math.abs(dx) >= 55) {
       const prev = currentWeek;
       if (dx < 0) changeWeek(1);
       else changeWeek(-1);
@@ -1058,7 +1058,7 @@ function confetti() {
     snapBack();
   }, { passive: true });
 
-  weekCard.addEventListener('touchcancel', snapBack, { passive: true });
+  homePage.addEventListener('touchcancel', snapBack, { passive: true });
 })();
 
 
