@@ -296,14 +296,9 @@ async function submitAuth() {
   }
 }
 
-async function logout() {
-  sb.auth.signOut().catch(() => {});
-  currentUser = null;
-  dbState = {};
-  userProfile = {};
-  closeSettings();
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
+function logout() {
+  Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k); });
+  location.reload();
 }
 
 // ===== DB =====
