@@ -193,11 +193,10 @@ function updateStats() {
 
 // ===== CONTROLS =====
 function startRun() {
-  // Reset reflection state and show think-about modal
   thinkAbout = '';
   reflectAnswered = null;
   document.getElementById('think-input').value = '';
-  document.getElementById('think-modal').classList.add('open');
+  setTimeout(() => document.getElementById('think-modal').classList.add('open'), 50);
 }
 
 async function beginRun(useInput) {
