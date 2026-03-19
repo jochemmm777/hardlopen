@@ -482,7 +482,7 @@ function renderDays() {
             ${['😓','😐','😊','🔥'].map(g => `<button class="gevoel-btn${gevoel === g ? ' active' : ''}" onclick="saveGevoel(${di},'${g}')">${g}</button>`).join('')}
           </div>
         </div>
-        <button class="complete-btn${ds.done ? ' done' : ''}" onclick="markDone(${di})">${ds.done ? '✓ Sessie voltooid!' : day.type === 'race' ? '🏅 Finish markeren!' : 'Sessie voltooien'}</button>
+        <button class="complete-btn${ds.done ? ' done' : ''}" onclick="toggleDone(${di})">${ds.done ? '✓ Voltooid — klik om ongedaan te maken' : day.type === 'race' ? '🏅 Finish markeren!' : 'Sessie voltooien'}</button>
       </div>`;
     }
 
@@ -548,16 +548,6 @@ async function toggleDone(di) {
     toast(c[0], c[1]);
     confetti();
   }
-}
-
-async function markDone(di) {
-  const ds = getDs(currentWeek, di);
-  if (ds.done) return;
-  await saveRow(currentWeek, di, { done: true });
-  render();
-  const c = COMP_DAY[Math.floor(Math.random() * COMP_DAY.length)];
-  toast(c[0], c[1]);
-  confetti();
 }
 
 async function saveKm(di, val) {
@@ -994,17 +984,28 @@ function confetti() {
 
 // ===== SWIPE WEEK NAV =====
 (function initSwipe() {
-  let touchStartX = 0;
+  let touchStartX = 0, touchStartY = 0;
   document.addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].clientX;
+    touchStartY = e.changedTouches[0].clientY;
   }, { passive: true });
   document.addEventListener('touchend', e => {
-    const el = document.getElementById('page-training');
-    if (!el || el.style.display === 'none') return;
+    const training = document.getElementById('page-training');
+    const home = document.getElementById('page-home');
+    const onTraining = training && training.style.display !== 'none';
+    const onHome = home && home.style.display !== 'none';
+    if (!onTraining && !onHome) return;
+
     const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) < 60) return; // minimum swipe distance
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return; // min swipe, no vertical scroll
+
+    const prev = currentWeek;
     if (dx < 0) changeWeek(1);   // swipe left → next week
     else changeWeek(-1);          // swipe right → prev week
+
+    // If on home screen, refresh upcoming after week change
+    if (onHome && currentWeek !== prev) loadHomeData();
   }, { passive: true });
 })();
 
