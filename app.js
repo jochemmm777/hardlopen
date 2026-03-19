@@ -487,14 +487,15 @@ function renderDays() {
     }
 
     const smartLabel = getSmartDate(currentWeek, di);
-    const displayDay = (smartLabel === 'Vandaag' || smartLabel === 'Morgen') ? smartLabel : day.day;
-    const displayDate = (smartLabel === 'Vandaag' || smartLabel === 'Morgen') ? getDayDate(currentWeek, di) : smartLabel.replace(/^[a-z]/, c => c.toUpperCase()).split(' ').slice(1).join(' ');
+    const isSpecial = smartLabel === 'Vandaag' || smartLabel === 'Morgen';
+    const displayDay = isSpecial ? smartLabel : day.day;
+    const displayDate = getDayDate(currentWeek, di); // altijd de echte datum tonen
 
     card.innerHTML = `
       <div class="day-header">
         <div>
           <span class="day-name">${displayDay}</span>
-          <span class="day-date">${getDayDate(currentWeek, di)}</span>
+          <span class="day-date">${displayDate}</span>
         </div>
         <span class="day-tag ${tagClass}">${tagLabel}</span>
       </div>
