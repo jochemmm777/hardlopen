@@ -626,9 +626,11 @@ function toast(title, msg, dur = 3500) {
   const c = document.getElementById('toast-container');
   const t = document.createElement('div'); t.className = 'toast';
   const icon = title.match(/[\u{1F300}-\u{1FFFF}]/u)?.[0] || '✅';
-  t.innerHTML = `<div class="toast-icon">${icon}</div><div style="flex:1"><div class="toast-title">${title.replace(/[\u{1F300}-\u{1FFFF}]/gu, '').trim()}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" onclick="this.closest('.toast').classList.add('out');setTimeout(()=>this.closest('.toast')?.remove(),280)">✕</button>`;
+  t.innerHTML = `<div class="toast-icon">${icon}</div><div style="flex:1"><div class="toast-title">${title.replace(/[\u{1F300}-\u{1FFFF}]/gu, '').trim()}</div><div class="toast-msg">${msg}</div></div><button class="toast-close">✕</button>`;
   c.appendChild(t);
-  const timer = setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 280); }, dur);
+  function dismiss() { t.classList.add('out'); setTimeout(() => t.remove(), 280); }
+  t.querySelector('.toast-close').addEventListener('click', dismiss);
+  setTimeout(dismiss, dur);
 }
 
 // ===== CONFETTI =====
@@ -662,19 +664,20 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('auth-screen').style.display !== 'none') submitAuth();
 });
 
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user) {
-    currentUser = session.user;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    await loadState();
-    await loadProfile();
-    render();
-    toast('👋 Hey Jochem!', 'Klaar voor je halve marathon?', 3500);
-  } else {
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-  }
-});
-
-sb.auth.getSession();
+(async () => {
+  await sb.auth.signOut();
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) {
+      currentUser = session.user;
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      await loadState();
+      await loadProfile();
+      render();
+      toast('👋 Hey Jochem!', 'Klaar voor je halve marathon?', 3500);
+    } else {
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+    }
+  });
+})();
