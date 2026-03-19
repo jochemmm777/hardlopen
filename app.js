@@ -91,6 +91,14 @@ const BASE_WEEKS = [null,
    {day:'Zondag',type:'fietsen',sessions:[{name:'Fietsen',detail:'20–60 min rustig'}]}],
 ];
 
+const START_DATE = new Date(2026, 2, 24); // 24 maart 2026 = week 1 maandag
+
+function getDayDate(week, dayIndex) {
+  const d = new Date(START_DATE);
+  d.setDate(d.getDate() + (week - 1) * 7 + dayIndex);
+  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
+}
+
 const PHASES = {1:'Weken 1–4',2:'Weken 1–4',3:'Weken 1–4',4:'Weken 1–4',5:'Weken 5–8',6:'Weken 5–8',7:'Weken 5–8',8:'Weken 5–8',9:'Weken 9–12',10:'Weken 9–12',11:'Weken 9–12',12:'Weken 9–12'};
 const COMP_EX = [['🔥 YES!','Weer een stap richting de finish!'],['💪 LEKKER!','Zo ga je dat, Jochem!'],['✅ GEDAAN!','Elke kilometer telt.'],['⚡ BOOM!','Rustig tempo is de sleutel!']];
 const COMP_DAY = [['🎉 DAG VOLTOOID!','Jochem pakt het helemaal af!'],['🏅 KLAAR!','Zo bouw je een halve marathon op!'],['💥 DONE!','De finish komt dichterbij!']];
@@ -320,7 +328,10 @@ function renderDays() {
 
     card.innerHTML = `
       <div class="day-header">
-        <span class="day-name">${day.day}</span>
+        <div>
+          <span class="day-name">${day.day}</span>
+          <span class="day-date">${getDayDate(currentWeek, di)}</span>
+        </div>
         <span class="day-tag ${tagClass}">${tagLabel}</span>
       </div>
       ${bodyHTML}`;
