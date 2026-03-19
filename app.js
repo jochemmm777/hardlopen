@@ -237,10 +237,18 @@ async function saveProfile() {
     }
   }
 
-  const { data, error } = await sb.auth.updateUser({ data: updates });
+  let data, error;
+  try {
+    ({ data, error } = await sb.auth.updateUser({ data: updates }));
+  } catch (e) {
+    btn.textContent = 'Opslaan';
+    btn.disabled = false;
+    toast('❌ Fout', e.message || 'Onbekende fout');
+    return;
+  }
   btn.textContent = 'Opslaan';
   btn.disabled = false;
-  if (error) { toast('❌ Fout', 'Kon profiel niet opslaan: ' + error.message); return; }
+  if (error) { toast('❌ Fout', error.message); return; }
   currentUser = data.user;
   userProfile = data.user.user_metadata;
   pendingAvatarFile = null;
