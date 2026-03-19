@@ -738,14 +738,12 @@ function loadHomeData() {
     const displayDay = (smartDate === 'Vandaag' || smartDate === 'Morgen') ? smartDate : item.day;
     const displayDate = getDayDate(item.week, item.dayIdx);
     return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''} ${isToday ? 'uc-today' : ''}">
-      <button class="uc-check-btn" data-week="${item.week}" data-dayidx="${item.dayIdx}" aria-label="Afvinken">
+      <button class="uc-check-btn" onclick="toggleDoneHome(${item.week}, ${item.dayIdx})">
         <span class="uc-check ${checkClass}">${checkIcon}</span>
       </button>
       <div class="uc-body">
-        <div class="uc-day-row">
-          <span class="uc-day">${displayDay}</span>
-          <span class="uc-date">${displayDate}</span>
-        </div>
+        <div class="uc-day">${displayDay}</div>
+        <div class="uc-date">${displayDate}</div>
         <div class="uc-detail">${item.detail || item.sessionName}</div>
       </div>
       <span class="uc-tag ${tagClass}">${tagLabel}</span>
@@ -1063,13 +1061,6 @@ function confetti() {
   weekCard.addEventListener('touchcancel', snapBack, { passive: true });
 })();
 
-// ===== HOME CHECK DELEGATION =====
-// Gebruik button zodat click altijd bubbles op iOS Safari
-document.getElementById('home-upcoming').addEventListener('click', e => {
-  const btn = e.target.closest('.uc-check-btn');
-  if (!btn) return;
-  toggleDoneHome(parseInt(btn.dataset.week), parseInt(btn.dataset.dayidx));
-});
 
 // ===== INIT =====
 window.addEventListener('keydown', e => {

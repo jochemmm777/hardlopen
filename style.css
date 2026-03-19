@@ -450,10 +450,9 @@ header {
 .uc-check.fietsen-todo { border: 2px solid var(--green); }
 
 .uc-body { flex: 1; min-width: 0; }
-.uc-day-row { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.15rem; }
-.uc-day { font-size: 0.85rem; font-weight: 600; color: var(--text); }
-.uc-date { font-size: 0.7rem; color: var(--text2); }
-.uc-detail { font-size: 0.75rem; color: var(--text2); }
+.uc-day { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; letter-spacing: 0.04em; color: var(--text); line-height: 1; }
+.uc-date { font-size: 0.7rem; color: var(--text2); margin-top: 0.1rem; }
+.uc-detail { font-size: 0.75rem; color: var(--text2); margin-top: 0.15rem; }
 
 .uc-tag {
   font-size: 0.63rem;
