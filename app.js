@@ -489,6 +489,7 @@ function renderDays() {
     const smartLabel = getSmartDate(currentWeek, di);
     const isSpecial = smartLabel === 'Vandaag' || smartLabel === 'Morgen';
     const displayDay = isSpecial ? smartLabel : day.day;
+    const displayDate = getDayDate(currentWeek, di);
 
     card.innerHTML = `
       <div class="day-header">
@@ -726,21 +727,33 @@ function loadHomeData() {
   document.getElementById('ho-fill').style.width = ovPct + '%';
   document.getElementById('ho-pct').textContent = ovPct + '%';
 
-  // Upcoming sessions: show next 5 from current week (+ start of next week if needed)
+  // Upcoming sessions: toon alle dagen van huidige week, dan max 3 uit volgende week
   const upcoming = [];
-  outer: for (let w = currentWeek; w <= Math.min(currentWeek + 1, 12); w++) {
-    BASE_WEEKS[w].forEach((day, di) => {
-      if (upcoming.length >= 5) return;
+  BASE_WEEKS[currentWeek].forEach((day, di) => {
+    if (day.type === 'rust') return;
+    const ds = getDs(currentWeek, di);
+    upcoming.push({
+      week: currentWeek, dayIdx: di,
+      day: day.day, type: day.type,
+      done: ds.done || false,
+      detail: (BASE_WEEKS[currentWeek][di].sessions[0]?.detail) || '',
+      sessionName: (BASE_WEEKS[currentWeek][di].sessions[0]?.name) || '',
+    });
+  });
+  if (currentWeek < 12) {
+    let extras = 0;
+    BASE_WEEKS[currentWeek + 1].forEach((day, di) => {
+      if (extras >= 3) return;
       if (day.type === 'rust') return;
-      const ds = getDs(w, di);
+      const ds = getDs(currentWeek + 1, di);
       upcoming.push({
-        week: w, dayIdx: di,
+        week: currentWeek + 1, dayIdx: di,
         day: day.day, type: day.type,
         done: ds.done || false,
-        detail: (BASE_WEEKS[w][di].sessions[0]?.detail) || '',
-        sessionName: (BASE_WEEKS[w][di].sessions[0]?.name) || '',
-        date: getDayDate(w, di),
+        detail: (BASE_WEEKS[currentWeek + 1][di].sessions[0]?.detail) || '',
+        sessionName: (BASE_WEEKS[currentWeek + 1][di].sessions[0]?.name) || '',
       });
+      extras++;
     });
   }
 
