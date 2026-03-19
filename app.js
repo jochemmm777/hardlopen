@@ -1049,7 +1049,8 @@ function confetti() {
   homePage.addEventListener('touchend', e => {
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
-    if (isHoriz && Math.abs(dx) >= 55) {
+    // Bereken richting zelf — niet afhankelijk van isHoriz uit touchmove
+    if (Math.abs(dx) >= 50 && Math.abs(dx) > Math.abs(dy)) {
       const prev = currentWeek;
       if (dx < 0) changeWeek(1);
       else changeWeek(-1);
