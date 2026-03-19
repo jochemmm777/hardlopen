@@ -297,6 +297,7 @@ async function submitAuth() {
 }
 
 function logout() {
+  sessionStorage.removeItem('session_active');
   Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k); });
   location.reload();
 }
@@ -665,9 +666,12 @@ window.addEventListener('keydown', e => {
 });
 
 (async () => {
-  await sb.auth.signOut();
+  if (!sessionStorage.getItem('session_active')) {
+    await sb.auth.signOut();
+  }
   sb.auth.onAuthStateChange(async (event, session) => {
     if (session?.user) {
+      sessionStorage.setItem('session_active', '1');
       currentUser = session.user;
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('app').style.display = 'block';
@@ -676,6 +680,7 @@ window.addEventListener('keydown', e => {
       render();
       toast('👋 Hey Jochem!', 'Klaar voor je halve marathon?', 3500);
     } else {
+      sessionStorage.removeItem('session_active');
       document.getElementById('auth-screen').style.display = 'flex';
       document.getElementById('app').style.display = 'none';
     }

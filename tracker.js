@@ -22,17 +22,24 @@ let wakeLock = null;
 let userWeightKg = parseInt(localStorage.getItem('runnerWeight') || '70');
 
 // ===== AUTH =====
-sb.auth.onAuthStateChange((event, session) => {
-  if (session?.user) {
-    currentUser = session.user;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    initMap();
-  } else {
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
+(async () => {
+  if (!sessionStorage.getItem('session_active')) {
+    await sb.auth.signOut();
   }
-});
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session?.user) {
+      sessionStorage.setItem('session_active', '1');
+      currentUser = session.user;
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      initMap();
+    } else {
+      sessionStorage.removeItem('session_active');
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+    }
+  });
+})();
 
 window.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('auth-screen').style.display !== 'none') submitAuth();
