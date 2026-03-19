@@ -489,7 +489,6 @@ function renderDays() {
     const smartLabel = getSmartDate(currentWeek, di);
     const isSpecial = smartLabel === 'Vandaag' || smartLabel === 'Morgen';
     const displayDay = isSpecial ? smartLabel : day.day;
-    const displayDate = getDayDate(currentWeek, di); // altijd de echte datum tonen
 
     card.innerHTML = `
       <div class="day-header">
@@ -737,7 +736,7 @@ function loadHomeData() {
     const smartDate = getSmartDate(item.week, item.dayIdx);
     const isToday = smartDate === 'Vandaag';
     const displayDay = (smartDate === 'Vandaag' || smartDate === 'Morgen') ? smartDate : item.day;
-    const displayDate = (smartDate === 'Vandaag' || smartDate === 'Morgen') ? getDayDate(item.week, item.dayIdx) : '';
+    const displayDate = getDayDate(item.week, item.dayIdx);
     return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''} ${isToday ? 'uc-today' : ''}">
       <button class="uc-check-btn" data-week="${item.week}" data-dayidx="${item.dayIdx}" aria-label="Afvinken">
         <span class="uc-check ${checkClass}">${checkIcon}</span>

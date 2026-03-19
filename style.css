@@ -631,7 +631,7 @@ header {
   border-bottom: 1px solid #2a2a26;
 }
 .day-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.04em; }
-.day-date { display: block; font-size: 0.78rem; color: var(--text2); margin-top: 0.15rem; font-weight: 500; }
+.day-date { display: block; font-size: 0.7rem; color: var(--text2); margin-top: 0.1rem; }
 .day-tag {
   font-size: 0.66rem;
   padding: 0.16rem 0.5rem;
