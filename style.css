@@ -540,6 +540,14 @@ header {
 }
 .toast.out { animation: tout 0.25s ease forwards; }
 .toast-icon { font-size: 1.1rem; flex-shrink: 0; }
+.toast-close {
+  background: none; border: none;
+  color: var(--text2); font-size: 0.75rem;
+  cursor: pointer; padding: 0.1rem 0.2rem;
+  flex-shrink: 0; line-height: 1;
+  opacity: 0.6; transition: opacity 0.15s;
+}
+.toast-close:hover { opacity: 1; }
 .toast-title { font-weight: 600; font-size: 0.83rem; color: var(--text); }
 .toast-msg { font-size: 0.73rem; color: var(--text2); margin-top: 0.1rem; }
 @keyframes tin { from { opacity:0; transform:translateX(40px) scale(0.93); } to { opacity:1; transform:translateX(0) scale(1); } }

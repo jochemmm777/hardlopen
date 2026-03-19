@@ -626,9 +626,9 @@ function toast(title, msg, dur = 3500) {
   const c = document.getElementById('toast-container');
   const t = document.createElement('div'); t.className = 'toast';
   const icon = title.match(/[\u{1F300}-\u{1FFFF}]/u)?.[0] || '✅';
-  t.innerHTML = `<div class="toast-icon">${icon}</div><div><div class="toast-title">${title.replace(/[\u{1F300}-\u{1FFFF}]/gu, '').trim()}</div><div class="toast-msg">${msg}</div></div>`;
+  t.innerHTML = `<div class="toast-icon">${icon}</div><div style="flex:1"><div class="toast-title">${title.replace(/[\u{1F300}-\u{1FFFF}]/gu, '').trim()}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" onclick="this.closest('.toast').classList.add('out');setTimeout(()=>this.closest('.toast')?.remove(),280)">✕</button>`;
   c.appendChild(t);
-  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 280); }, dur);
+  const timer = setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 280); }, dur);
 }
 
 // ===== CONFETTI =====
