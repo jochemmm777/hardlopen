@@ -35,35 +35,67 @@
 <!-- APP -->
 <div id="app" style="display:none">
 
+  <!-- App switcher -->
+  <div class="app-switcher">
+    <button class="app-sw active" onclick="showPage('home')">📋 Trainingsplan</button>
+    <a class="app-sw" href="tracker.html">🏃 Tracker</a>
+  </div>
+
+  <!-- Header -->
   <header>
-    <div class="header-inner">
-      <div>
-        <h1 class="site-title">JOCHEM'S <span>HALVE MARATHON</span></h1>
-        <p class="site-sub">12-week trainingsplan · minimaal 5 km per run + fietsen</p>
-      </div>
+    <div class="header-bar">
+      <button class="menu-btn" onclick="openMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <h1 class="site-title">HALVE <span>MARATHON</span></h1>
       <div class="header-right">
-        <div class="streak-badge">🔥 <span id="streak-num">0</span> dagen</div>
+        <div class="streak-badge">🔥 <span id="streak-num">0</span></div>
         <button class="avatar-btn" id="header-avatar" onclick="openSettings()">J</button>
       </div>
     </div>
-    <div class="goal-bar">
-      <div>Startpunt: <span>±5 km met wandelen</span></div>
-      <div>Doel: <span>Halve marathon (21,1 km)</span></div>
-      <div>Tempo: <span>Rustig — praten moet kunnen</span></div>
-    </div>
   </header>
 
-  <!-- NAV TABS -->
-  <nav class="page-nav">
-    <button class="page-tab active" onclick="showPage('training')">Training</button>
-    <button class="page-tab" onclick="showPage('voeding')">Voeding</button>
-    <button class="page-tab" onclick="showPage('data')">📊 Data</button>
-    <button class="page-tab" onclick="showPage('reflecties')">Reflecties</button>
-    <a class="page-tab" href="tracker.html">🏃 Tracker</a>
-  </nav>
+  <!-- HOME PAGE -->
+  <div id="page-home" class="home-page">
+
+    <div class="home-week-card">
+      <div class="hwc-top">
+        <div>
+          <div class="hwc-eyebrow">HUIDIGE WEEK</div>
+          <div class="hwc-week" id="hwc-week">WEEK 1</div>
+          <div class="hwc-phase" id="hwc-phase">Weken 1–4</div>
+        </div>
+        <button class="hwc-schema-btn" onclick="showPage('training'); closeMenu()">Schema →</button>
+      </div>
+      <div class="hwc-progress-row">
+        <span class="hwc-prog-label">Sessies gedaan</span>
+        <span class="hwc-fraction" id="hwc-fraction">—</span>
+      </div>
+      <div class="hwc-bar"><div class="hwc-fill" id="hwc-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="home-section-label">DE KOMENDE SESSIES</div>
+    <div id="home-upcoming" class="home-upcoming-list">
+      <div class="uc-loading">Laden...</div>
+    </div>
+
+    <div class="home-overall">
+      <div class="ho-label">Totale voortgang — 12 weken</div>
+      <div class="ho-bar"><div class="ho-fill" id="ho-fill" style="width:0%"></div></div>
+      <div class="ho-pct" id="ho-pct">0%</div>
+    </div>
+
+  </div>
 
   <!-- TRAINING PAGE -->
-  <div id="page-training">
+  <div id="page-training" style="display:none">
+
+    <div class="training-info-bar">
+      <div class="tib-item">Startpunt: <span>±5 km met wandelen</span></div>
+      <div class="tib-item">Doel: <span>Halve marathon (21,1 km)</span></div>
+      <div class="tib-item">Tempo: <span>Rustig — praten moet kunnen</span></div>
+    </div>
+
     <div class="rules-bar">
       <div class="rule-pill">✓ Elke run ≥ 5 km</div>
       <div class="rule-pill">✓ Rustig tempo</div>
@@ -125,33 +157,15 @@
           </div>
           <div class="vc-section">
             <div class="vc-section-title">Wat eten</div>
-            <div class="vc-item">
-              <div class="vc-dot orange"></div>
-              <div><strong>Havermout met banaan</strong> — langzame koolhydraten, houdt je energie stabiel</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot orange"></div>
-              <div><strong>Brood met honing of jam</strong> — makkelijk verteerbaar, snelle energie</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot orange"></div>
-              <div><strong>Rijst met groenten</strong> — voor langere runs (10+ km)</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot orange"></div>
-              <div><strong>Banaan</strong> — 30–45 min voor vertrek, als je kort voor de run nog iets wil</div>
-            </div>
+            <div class="vc-item"><div class="vc-dot orange"></div><div><strong>Havermout met banaan</strong> — langzame koolhydraten, houdt je energie stabiel</div></div>
+            <div class="vc-item"><div class="vc-dot orange"></div><div><strong>Brood met honing of jam</strong> — makkelijk verteerbaar, snelle energie</div></div>
+            <div class="vc-item"><div class="vc-dot orange"></div><div><strong>Rijst met groenten</strong> — voor langere runs (10+ km)</div></div>
+            <div class="vc-item"><div class="vc-dot orange"></div><div><strong>Banaan</strong> — 30–45 min voor vertrek, als je kort voor de run nog iets wil</div></div>
           </div>
           <div class="vc-section">
             <div class="vc-section-title">Wat drinken</div>
-            <div class="vc-item">
-              <div class="vc-dot blue"></div>
-              <div><strong>400–600 ml water</strong> — 2 uur van tevoren, zodat je lichaam het kan verwerken</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot blue"></div>
-              <div><strong>Geen koffie vlak voor</strong> — kan maagklachten geven tijdens het rennen</div>
-            </div>
+            <div class="vc-item"><div class="vc-dot blue"></div><div><strong>400–600 ml water</strong> — 2 uur van tevoren, zodat je lichaam het kan verwerken</div></div>
+            <div class="vc-item"><div class="vc-dot blue"></div><div><strong>Geen koffie vlak voor</strong> — kan maagklachten geven tijdens het rennen</div></div>
           </div>
           <div class="vc-vermijd">
             <div class="vc-vermijd-title">⚠️ Vermijd</div>
@@ -169,25 +183,13 @@
           </div>
           <div class="vc-section">
             <div class="vc-section-title">Wat eten</div>
-            <div class="vc-item">
-              <div class="vc-dot orange"></div>
-              <div><strong>Energiegel of dadel</strong> — elke 45 min bij lange runs (14 km+)</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot orange"></div>
-              <div><strong>Stukje banaan</strong> — makkelijk mee te nemen, goed verteerbaar</div>
-            </div>
+            <div class="vc-item"><div class="vc-dot orange"></div><div><strong>Energiegel of dadel</strong> — elke 45 min bij lange runs (14 km+)</div></div>
+            <div class="vc-item"><div class="vc-dot orange"></div><div><strong>Stukje banaan</strong> — makkelijk mee te nemen, goed verteerbaar</div></div>
           </div>
           <div class="vc-section">
             <div class="vc-section-title">Wat drinken</div>
-            <div class="vc-item">
-              <div class="vc-dot blue"></div>
-              <div><strong>150–200 ml water per 20 min</strong> — zelfs als je niet dorstig bent</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot blue"></div>
-              <div><strong>Isotone drank bij 75+ min</strong> — voor de zouten die je kwijtraakt met zweten</div>
-            </div>
+            <div class="vc-item"><div class="vc-dot blue"></div><div><strong>150–200 ml water per 20 min</strong> — zelfs als je niet dorstig bent</div></div>
+            <div class="vc-item"><div class="vc-dot blue"></div><div><strong>Isotone drank bij 75+ min</strong> — voor de zouten die je kwijtraakt met zweten</div></div>
           </div>
           <div class="vc-tip">
             <strong>Tip voor Jochem:</strong> bij runs onder de 10 km heb je normaal niks nodig tijdens het lopen. Zorg gewoon dat je goed gehyddrateerd begint.
@@ -204,49 +206,22 @@
           </div>
           <div class="vc-section">
             <div class="vc-section-title">Wat eten</div>
-            <div class="vc-item">
-              <div class="vc-dot green"></div>
-              <div><strong>Kwark of Griekse yoghurt met fruit</strong> — eiwit voor spierherstel, koolhydraten om glycogeen aan te vullen</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot green"></div>
-              <div><strong>Brood met kipfilet of ei</strong> — complete maaltijd met eiwit en koolhydraten</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot green"></div>
-              <div><strong>Rijst met kip en groenten</strong> — ideaal na lange duurlopen (12 km+)</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot green"></div>
-              <div><strong>Smoothie</strong> — banaan + melk + havermout + eiwitpoeder als je snel iets wil</div>
-            </div>
+            <div class="vc-item"><div class="vc-dot green"></div><div><strong>Kwark of Griekse yoghurt met fruit</strong> — eiwit voor spierherstel, koolhydraten om glycogeen aan te vullen</div></div>
+            <div class="vc-item"><div class="vc-dot green"></div><div><strong>Brood met kipfilet of ei</strong> — complete maaltijd met eiwit en koolhydraten</div></div>
+            <div class="vc-item"><div class="vc-dot green"></div><div><strong>Rijst met kip en groenten</strong> — ideaal na lange duurlopen (12 km+)</div></div>
+            <div class="vc-item"><div class="vc-dot green"></div><div><strong>Smoothie</strong> — banaan + melk + havermout + eiwitpoeder als je snel iets wil</div></div>
           </div>
           <div class="vc-section">
             <div class="vc-section-title">Wat drinken</div>
-            <div class="vc-item">
-              <div class="vc-dot blue"></div>
-              <div><strong>500–750 ml water</strong> — direct na afloop beginnen met aanvullen</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot blue"></div>
-              <div><strong>Chocolademelk</strong> — klinkt raar maar is een klassiek hersteldrankje (eiwit + koolhydraten)</div>
-            </div>
+            <div class="vc-item"><div class="vc-dot blue"></div><div><strong>500–750 ml water</strong> — direct na afloop beginnen met aanvullen</div></div>
+            <div class="vc-item"><div class="vc-dot blue"></div><div><strong>Chocolademelk</strong> — klinkt raar maar is een klassiek hersteldrankje (eiwit + koolhydraten)</div></div>
           </div>
           <div class="vc-ratio">
             <div class="vc-ratio-title">Ideale verhouding na training</div>
             <div class="vc-ratio-bars">
-              <div class="ratio-item">
-                <div class="ratio-label">Koolhydraten</div>
-                <div class="ratio-bar"><div class="ratio-fill carb" style="width:60%">60%</div></div>
-              </div>
-              <div class="ratio-item">
-                <div class="ratio-label">Eiwitten</div>
-                <div class="ratio-bar"><div class="ratio-fill prot" style="width:30%">30%</div></div>
-              </div>
-              <div class="ratio-item">
-                <div class="ratio-label">Vetten</div>
-                <div class="ratio-bar"><div class="ratio-fill fat" style="width:10%">10%</div></div>
-              </div>
+              <div class="ratio-item"><div class="ratio-label">Koolhydraten</div><div class="ratio-bar"><div class="ratio-fill carb" style="width:60%">60%</div></div></div>
+              <div class="ratio-item"><div class="ratio-label">Eiwitten</div><div class="ratio-bar"><div class="ratio-fill prot" style="width:30%">30%</div></div></div>
+              <div class="ratio-item"><div class="ratio-label">Vetten</div><div class="ratio-bar"><div class="ratio-fill fat" style="width:10%">10%</div></div></div>
             </div>
           </div>
         </div>
@@ -261,18 +236,9 @@
           </div>
           <div class="vc-section">
             <div class="vc-section-title">Verschil met lopen</div>
-            <div class="vc-item">
-              <div class="vc-dot orange"></div>
-              <div>Fietsen is herstel — <strong>je hoeft niet zwaar te tanken</strong>. Gewone maaltijden zijn prima.</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot orange"></div>
-              <div>Wel goed drinken: <strong>300–500 ml water</strong> voor vertrek</div>
-            </div>
-            <div class="vc-item">
-              <div class="vc-dot orange"></div>
-              <div>Na afloop gewoon je <strong>normale maaltijd</strong> — je hoeft niet extra bij te eten</div>
-            </div>
+            <div class="vc-item"><div class="vc-dot orange"></div><div>Fietsen is herstel — <strong>je hoeft niet zwaar te tanken</strong>. Gewone maaltijden zijn prima.</div></div>
+            <div class="vc-item"><div class="vc-dot orange"></div><div>Wel goed drinken: <strong>300–500 ml water</strong> voor vertrek</div></div>
+            <div class="vc-item"><div class="vc-dot orange"></div><div>Na afloop gewoon je <strong>normale maaltijd</strong> — je hoeft niet extra bij te eten</div></div>
           </div>
           <div class="vc-tip">
             <strong>Onthoud:</strong> fietsen is herstel. Niet slopen. Als je je benen voelt branden, ga je te hard.
@@ -300,7 +266,7 @@
   <!-- REFLECTIES PAGE -->
   <div id="page-reflecties" style="display:none">
     <div class="reflecties-page" id="reflecties-content">
-      <div class="reflect-empty" id="reflecties-placeholder">Laden...</div>
+      <div class="reflect-empty">Laden...</div>
     </div>
   </div>
 
@@ -332,6 +298,35 @@
   </div>
 
 </div>
+
+<!-- NAV MENU DRAWER -->
+<div id="nav-menu" class="nav-menu">
+  <div class="nm-header">
+    <span class="nm-title-main">MENU</span>
+    <button class="nm-close" onclick="closeMenu()">✕</button>
+  </div>
+  <div class="nm-item" id="nm-home" onclick="showPage('home'); closeMenu()">
+    <span class="nm-icon">🏠</span>
+    <div><div class="nm-label">Home</div><div class="nm-sub">Overzicht & komende sessies</div></div>
+  </div>
+  <div class="nm-item" id="nm-training" onclick="showPage('training'); closeMenu()">
+    <span class="nm-icon">📅</span>
+    <div><div class="nm-label">Trainingsschema</div><div class="nm-sub">Week voor week overzicht</div></div>
+  </div>
+  <div class="nm-item" id="nm-voeding" onclick="showPage('voeding'); closeMenu()">
+    <span class="nm-icon">🥗</span>
+    <div><div class="nm-label">Voeding</div><div class="nm-sub">Eten voor, tijdens en na</div></div>
+  </div>
+  <div class="nm-item" id="nm-data" onclick="showPage('data'); closeMenu()">
+    <span class="nm-icon">📊</span>
+    <div><div class="nm-label">Data & statistieken</div><div class="nm-sub">Runs, totalen, grafieken</div></div>
+  </div>
+  <div class="nm-item" id="nm-reflecties" onclick="showPage('reflecties'); closeMenu()">
+    <span class="nm-icon">💭</span>
+    <div><div class="nm-label">Reflecties</div><div class="nm-sub">Gedachten na je runs</div></div>
+  </div>
+</div>
+<div id="nav-overlay" class="nav-overlay" onclick="closeMenu()"></div>
 
 <!-- SETTINGS PANEL -->
 <div id="settings-panel" class="settings-panel">
@@ -387,16 +382,11 @@
     <div class="runmap-legend">
       <span class="runmap-legend-lbl">Langzaam</span>
       <div class="runmap-legend-bar">
-        <div style="background:#a8f5a0" title=">7:30/km"></div>
-        <div style="background:#60e060" title="7:00-7:30"></div>
-        <div style="background:#20c040" title="6:30-7:00"></div>
-        <div style="background:#80cc00" title="6:00-6:30"></div>
-        <div style="background:#e0c800" title="5:30-6:00"></div>
-        <div style="background:#f08000" title="5:00-5:30"></div>
-        <div style="background:#e04010" title="4:30-5:00"></div>
-        <div style="background:#c00080" title="4:00-4:30"></div>
-        <div style="background:#8000c0" title="3:30-4:00"></div>
-        <div style="background:#40007a" title="<3:30/km"></div>
+        <div style="background:#a8f5a0"></div><div style="background:#60e060"></div>
+        <div style="background:#20c040"></div><div style="background:#80cc00"></div>
+        <div style="background:#e0c800"></div><div style="background:#f08000"></div>
+        <div style="background:#e04010"></div><div style="background:#c00080"></div>
+        <div style="background:#8000c0"></div><div style="background:#40007a"></div>
       </div>
       <span class="runmap-legend-lbl">Snel</span>
     </div>

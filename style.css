@@ -121,91 +121,333 @@ body {
   min-height: 1.2em;
 }
 
+/* ===== APP SWITCHER ===== */
+.app-switcher {
+  display: flex;
+  background: var(--black);
+  padding: 0.45rem 0.75rem;
+  gap: 0.35rem;
+  border-bottom: 1px solid #1e1e1b;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+.app-sw {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.6rem 0.5rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+.app-sw.active {
+  background: var(--card);
+  color: var(--orange);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+.app-sw:hover:not(.active) { color: var(--text); }
+
 /* ===== HEADER ===== */
 header {
-  padding: 2rem 2rem 1rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid #2a2a26;
+  position: sticky;
+  top: 44px;
+  background: var(--black);
+  z-index: 55;
 }
-.header-inner {
+.header-bar {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.8rem;
+  align-items: center;
+  gap: 0.75rem;
 }
 .site-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(1.8rem, 5vw, 3.5rem);
-  letter-spacing: 0.03em;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
   line-height: 1;
+  flex: 1;
+  text-align: center;
 }
 .site-title span { color: var(--orange); }
-.site-sub { font-size: 0.82rem; color: var(--text2); margin-top: 0.3rem; }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   flex-shrink: 0;
 }
 .streak-badge {
-  background: var(--orange);
-  color: white;
+  background: rgba(244,99,30,0.15);
+  color: var(--orange);
   border-radius: 99px;
-  padding: 0.35rem 0.9rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-.logout-btn {
-  background: none;
-  border: 1px solid #444;
-  color: var(--text2);
-  border-radius: 99px;
-  padding: 0.35rem 0.9rem;
+  padding: 0.28rem 0.65rem;
   font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid rgba(244,99,30,0.25);
+}
+
+/* ===== HAMBURGER MENU BUTTON ===== */
+.menu-btn {
+  background: none;
+  border: none;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.menu-btn:hover { background: var(--card); }
+.menu-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
   transition: all 0.2s;
 }
-.logout-btn:hover { border-color: var(--orange); color: var(--orange); }
 
-.goal-bar {
+/* ===== NAV MENU DRAWER ===== */
+.nav-menu {
+  position: fixed;
+  top: 0; left: 0;
+  width: 290px;
+  height: 100vh;
+  background: var(--card);
+  border-right: 1px solid #2a2a26;
+  z-index: 1000;
+  transform: translateX(-110%);
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.nav-menu.open { transform: translateX(0); }
+
+.nav-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 999;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.28s;
+}
+.nav-overlay.open { opacity: 1; pointer-events: auto; }
+
+.nm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.2rem 0.9rem;
+  border-bottom: 1px solid #2a2a26;
+  flex-shrink: 0;
+}
+.nm-title-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.07em;
+  color: var(--text2);
+}
+.nm-close {
+  background: none; border: none;
+  color: var(--text2); font-size: 1rem;
+  cursor: pointer; width: 28px; height: 28px;
+  border-radius: 50%; display: flex;
+  align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.nm-close:hover { background: var(--card2); color: var(--text); }
+
+.nm-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1.2rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 0;
+}
+.nm-item:hover { background: var(--card2); }
+.nm-item.active-page { background: rgba(244,99,30,0.08); border-left: 3px solid var(--orange); }
+.nm-icon { font-size: 1.25rem; flex-shrink: 0; width: 28px; text-align: center; }
+.nm-label { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+.nm-sub { font-size: 0.71rem; color: var(--text2); margin-top: 0.1rem; }
+
+/* ===== HOME PAGE ===== */
+.home-page {
+  padding: 1.1rem 1rem 3rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.home-week-card {
+  background: linear-gradient(135deg, var(--card) 0%, #1c1c18 100%);
+  border: 1px solid rgba(244,99,30,0.18);
+  border-radius: 18px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.hwc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+.hwc-eyebrow {
+  font-size: 0.65rem;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.2rem;
+}
+.hwc-week {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  color: var(--text);
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+.hwc-phase {
+  font-size: 0.72rem;
+  color: var(--text2);
+  margin-top: 0.2rem;
+}
+.hwc-schema-btn {
+  font-size: 0.76rem;
+  color: var(--orange);
+  background: none;
+  border: 1px solid rgba(244,99,30,0.3);
+  border-radius: 8px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.hwc-schema-btn:hover { background: rgba(244,99,30,0.1); }
+.hwc-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+.hwc-prog-label { font-size: 0.7rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; }
+.hwc-fraction {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  color: var(--orange);
+}
+.hwc-bar {
+  background: rgba(255,255,255,0.07);
+  border-radius: 99px;
+  height: 7px;
+  overflow: hidden;
+}
+.hwc-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--orange-dark), var(--orange));
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+
+.home-section-label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.65rem;
+}
+
+.home-upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.uc-loading { color: var(--muted); font-size: 0.85rem; }
+
+.upcoming-card {
+  background: var(--card);
+  border: 1px solid #2a2a26;
+  border-radius: 13px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  transition: border-color 0.2s;
+}
+.upcoming-card.type-lopen { border-left: 3px solid var(--blue); }
+.upcoming-card.type-fietsen { border-left: 3px solid var(--green); }
+.upcoming-card.type-race { border-left: 3px solid var(--orange); }
+.upcoming-card.uc-done { opacity: 0.45; }
+
+.uc-check {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+.uc-check.done { background: var(--green); color: white; }
+.uc-check.todo { border: 2px solid #444; }
+.uc-check.fietsen-todo { border: 2px solid var(--green); }
+
+.uc-body { flex: 1; min-width: 0; }
+.uc-day-row { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.15rem; }
+.uc-day { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.uc-date { font-size: 0.7rem; color: var(--text2); }
+.uc-detail { font-size: 0.75rem; color: var(--text2); }
+
+.uc-tag {
+  font-size: 0.63rem;
+  padding: 0.13rem 0.45rem;
+  border-radius: 99px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.uc-tag-lopen { background: var(--blue-bg); color: var(--blue); }
+.uc-tag-fietsen { background: var(--green-bg); color: var(--green); }
+.uc-tag-race { background: #2a1005; color: var(--orange); }
+
+.home-overall {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #2a2a26;
+}
+.ho-label { font-size: 0.67rem; color: var(--muted); white-space: nowrap; }
+.ho-bar { flex: 1; background: #2a2a26; border-radius: 99px; height: 4px; }
+.ho-fill { height: 100%; background: var(--orange); border-radius: 99px; transition: width 0.6s; }
+.ho-pct { font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; color: var(--text2); }
+
+/* ===== TRAINING PAGE INFO BAR ===== */
+.training-info-bar {
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
-  font-size: 0.8rem;
-  color: var(--text2);
-  background: var(--card);
-  border-left: 3px solid var(--orange);
-  border-radius: 0 8px 8px 0;
-  padding: 0.6rem 1rem;
-}
-.goal-bar span { color: var(--text); font-weight: 500; }
-
-/* ===== PAGE NAV ===== */
-.page-nav {
-  display: flex;
-  padding: 0 2rem;
+  padding: 0.7rem 1rem;
   border-bottom: 1px solid #2a2a26;
-  gap: 0;
-}
-.page-tab {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
+  font-size: 0.78rem;
   color: var(--text2);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 500;
-  padding: 0.85rem 1.2rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-bottom: -1px;
+  background: rgba(244,99,30,0.04);
+  border-left: 3px solid var(--orange);
 }
-.page-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
-.page-tab:hover { color: var(--text); }
-a.page-tab { text-decoration: none; display: inline-flex; align-items: center; }
+.tib-item span { color: var(--text); font-weight: 500; }
 
 /* ===== RULES BAR ===== */
 .rules-bar {
@@ -707,9 +949,8 @@ a.page-tab { text-decoration: none; display: inline-flex; align-items: center; }
 }
 
 @media (max-width: 700px) {
-  header, .progress-area, .overall-bar, .week-dots, .rules-bar, .week-nav, .drag-hint { padding-left: 1rem; padding-right: 1rem; }
+  .progress-area, .overall-bar, .week-dots, .rules-bar, .week-nav, .drag-hint { padding-left: 1rem; padding-right: 1rem; }
   .days-grid { padding: 1rem; }
-  .page-nav { padding: 0 1rem; }
   .voeding-page { padding: 1rem 1rem 2rem; }
   .vwt-grid { grid-template-columns: repeat(4, 1fr); }
   .settings-panel { width: 100%; }
@@ -742,10 +983,18 @@ html[data-theme="light"] .sp-logout-btn { border-color: #ccc; }
 html[data-theme="light"] .sp-header { border-color: #ddd; }
 html[data-theme="light"] #settings-overlay { background: rgba(0,0,0,0.3); }
 html[data-theme="light"] .toast { background: var(--card); }
-html[data-theme="light"] header { border-color: #ddd; }
-html[data-theme="light"] .goal-bar { background: var(--card); border-color: #ddd; }
+html[data-theme="light"] header { border-color: #ddd; background: var(--black); }
+html[data-theme="light"] .app-switcher { background: var(--black); border-color: #ddd; }
+html[data-theme="light"] .app-sw.active { background: var(--card); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+html[data-theme="light"] .nav-menu { border-color: #ddd; }
+html[data-theme="light"] .nm-header { border-color: #ddd; }
+html[data-theme="light"] .home-week-card { background: var(--card); border-color: rgba(244,99,30,0.2); }
+html[data-theme="light"] .hwc-bar { background: #e5e4dd; }
+html[data-theme="light"] .upcoming-card { border-color: #ddd; }
+html[data-theme="light"] .training-info-bar { background: rgba(244,99,30,0.04); }
 html[data-theme="light"] .voeding-card { border-color: #ddd; }
 html[data-theme="light"] .prog-track, html[data-theme="light"] .ov-track { background: #ddd; }
+html[data-theme="light"] .ho-bar { background: #ddd; }
 
 /* ===== DATA PAGE ===== */
 .data-page { max-width: 800px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; display: flex; flex-direction: column; gap: 1.5rem; }

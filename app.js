@@ -615,23 +615,101 @@ async function onDrop(e, targetDay) {
   renderDays();
 }
 
+// ===== MENU =====
+function openMenu() {
+  document.getElementById('nav-menu').classList.add('open');
+  document.getElementById('nav-overlay').classList.add('open');
+}
+function closeMenu() {
+  document.getElementById('nav-menu').classList.remove('open');
+  document.getElementById('nav-overlay').classList.remove('open');
+}
+
 // ===== PAGE NAV =====
 function showPage(page) {
-  document.getElementById('page-training').style.display = page === 'training' ? 'block' : 'none';
-  document.getElementById('page-voeding').style.display = page === 'voeding' ? 'block' : 'none';
-  document.getElementById('page-data').style.display = page === 'data' ? 'block' : 'none';
-  document.getElementById('page-reflecties').style.display = page === 'reflecties' ? 'block' : 'none';
-  // Tabs: 0=training, 1=voeding, 2=data, 3=reflecties, 4=tracker (anchor)
-  document.querySelectorAll('.page-tab').forEach((t, i) => {
-    t.classList.toggle('active',
-      (i === 0 && page === 'training') ||
-      (i === 1 && page === 'voeding') ||
-      (i === 2 && page === 'data') ||
-      (i === 3 && page === 'reflecties')
-    );
+  const pages = ['home', 'training', 'voeding', 'data', 'reflecties'];
+  pages.forEach(p => {
+    const el = document.getElementById('page-' + p);
+    if (el) el.style.display = p === page ? 'block' : 'none';
   });
+  // Highlight active menu item
+  pages.forEach(p => {
+    const el = document.getElementById('nm-' + p);
+    if (el) el.classList.toggle('active-page', p === page);
+  });
+  if (page === 'home') loadHomeData();
   if (page === 'data') loadRunData();
   if (page === 'reflecties') loadReflections();
+}
+
+// ===== HOME PAGE =====
+function loadHomeData() {
+  // Week card
+  document.getElementById('hwc-week').textContent = currentWeek === 0 ? 'WEEK 0 — OPWARMER' : 'WEEK ' + currentWeek;
+  document.getElementById('hwc-phase').textContent = PHASES[currentWeek] || '';
+
+  const week = BASE_WEEKS[currentWeek];
+  const activeDays = week.filter(d => d.type !== 'rust');
+  const runDays = week.filter(d => d.type !== 'fietsen' && d.type !== 'rust');
+  const doneDays = runDays.filter((d, _) => getDs(currentWeek, week.indexOf(d)).done);
+  const pct = runDays.length ? Math.round(doneDays.length / runDays.length * 100) : 0;
+  document.getElementById('hwc-fill').style.width = pct + '%';
+  document.getElementById('hwc-fraction').textContent = doneDays.length + ' / ' + runDays.length + ' sessies';
+
+  // Overall
+  let total = 0, doneTotal = 0;
+  for (let w = 1; w <= 12; w++) {
+    BASE_WEEKS[w].forEach((d, i) => {
+      if (d.type === 'fietsen' || d.type === 'rust') return;
+      total++;
+      if (getDs(w, i).done) doneTotal++;
+    });
+  }
+  const ovPct = total ? Math.round(doneTotal / total * 100) : 0;
+  document.getElementById('ho-fill').style.width = ovPct + '%';
+  document.getElementById('ho-pct').textContent = ovPct + '%';
+
+  // Upcoming sessions: show next 5 from current week (+ start of next week if needed)
+  const upcoming = [];
+  outer: for (let w = currentWeek; w <= Math.min(currentWeek + 1, 12); w++) {
+    BASE_WEEKS[w].forEach((day, di) => {
+      if (upcoming.length >= 5) return;
+      if (day.type === 'rust') return;
+      const ds = getDs(w, di);
+      upcoming.push({
+        week: w, dayIdx: di,
+        day: day.day, type: day.type,
+        done: ds.done || false,
+        detail: (BASE_WEEKS[w][di].sessions[0]?.detail) || '',
+        sessionName: (BASE_WEEKS[w][di].sessions[0]?.name) || '',
+        date: getDayDate(w, di),
+      });
+    });
+  }
+
+  const list = document.getElementById('home-upcoming');
+  if (!upcoming.length) {
+    list.innerHTML = '<div class="uc-loading">Geen sessies gevonden.</div>';
+    return;
+  }
+
+  list.innerHTML = upcoming.map(item => {
+    const tagClass = { lopen: 'uc-tag-lopen', fietsen: 'uc-tag-fietsen', race: 'uc-tag-race' }[item.type] || '';
+    const tagLabel = { lopen: 'Hardlopen', fietsen: 'Fietsen', race: 'Race!' }[item.type] || item.type;
+    const checkClass = item.done ? 'done' : (item.type === 'fietsen' ? 'fietsen-todo' : 'todo');
+    const checkIcon = item.done ? '✓' : '';
+    return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''}">
+      <div class="uc-check ${checkClass}">${checkIcon}</div>
+      <div class="uc-body">
+        <div class="uc-day-row">
+          <span class="uc-day">${item.day}</span>
+          <span class="uc-date">${item.date}</span>
+        </div>
+        <div class="uc-detail">${item.detail || item.sessionName}</div>
+      </div>
+      <span class="uc-tag ${tagClass}">${tagLabel}</span>
+    </div>`;
+  }).join('');
 }
 
 let reflectionsLoaded = false;
@@ -885,6 +963,7 @@ window.addEventListener('keydown', e => {
       await loadState();
       await loadProfile();
       render();
+      showPage('home');
       toast('👋 Hey Jochem!', 'Klaar voor je halve marathon?', 3500);
     } else {
       sessionStorage.removeItem('session_active');
