@@ -747,6 +747,37 @@ html[data-theme="light"] .goal-bar { background: var(--card); border-color: #ddd
 html[data-theme="light"] .voeding-card { border-color: #ddd; }
 html[data-theme="light"] .prog-track, html[data-theme="light"] .ov-track { background: #ddd; }
 
+/* ===== DATA PAGE ===== */
+.data-page { max-width: 800px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; display: flex; flex-direction: column; gap: 1.5rem; }
+.data-section { }
+.data-title { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.08em; color: var(--text2); margin-bottom: 0.75rem; }
+
+.data-totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+.data-stat { background: var(--card); border: 1px solid #2a2a26; border-radius: 12px; padding: 1rem 0.75rem; text-align: center; }
+.data-stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--orange); line-height: 1; }
+.data-stat-label { font-size: 0.65rem; color: var(--text2); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Chart */
+.data-chart { display: flex; align-items: flex-end; gap: 0.5rem; height: 140px; padding-bottom: 2rem; position: relative; }
+.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+.chart-bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; }
+.chart-bar { width: 100%; background: var(--orange); border-radius: 4px 4px 0 0; min-height: 3px; transition: height 0.4s ease; }
+.chart-km { font-size: 0.62rem; color: var(--text2); margin-top: 0.2rem; }
+.chart-label { font-size: 0.58rem; color: var(--text2); text-align: center; }
+
+/* Run list */
+.data-runs-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.run-item { background: var(--card); border: 1px solid #2a2a26; border-radius: 12px; padding: 0.85rem 1rem; }
+.run-meta { font-size: 0.75rem; color: var(--text2); margin-bottom: 0.4rem; }
+.run-stats { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.88rem; }
+.run-km { color: var(--orange); font-weight: 700; }
+.data-empty { color: var(--text2); font-size: 0.9rem; padding: 1.5rem 0; }
+
+@media (max-width: 480px) {
+  .data-totals { grid-template-columns: repeat(2, 1fr); }
+  .run-stats { gap: 0.6rem; font-size: 0.8rem; }
+}
+
 /* ===== AVATAR BUTTON ===== */
 .avatar-btn {
   width: 36px; height: 36px;

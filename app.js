@@ -619,7 +619,82 @@ async function onDrop(e, targetDay) {
 function showPage(page) {
   document.getElementById('page-training').style.display = page === 'training' ? 'block' : 'none';
   document.getElementById('page-voeding').style.display = page === 'voeding' ? 'block' : 'none';
-  document.querySelectorAll('.page-tab').forEach((t, i) => t.classList.toggle('active', (i === 0 && page === 'training') || (i === 1 && page === 'voeding')));
+  document.getElementById('page-data').style.display = page === 'data' ? 'block' : 'none';
+  document.querySelectorAll('.page-tab').forEach((t, i) => {
+    t.classList.toggle('active',
+      (i === 0 && page === 'training') ||
+      (i === 1 && page === 'voeding') ||
+      (i === 2 && page === 'data')
+    );
+  });
+  if (page === 'data') loadRunData();
+}
+
+let runDataLoaded = false;
+
+async function loadRunData() {
+  if (runDataLoaded) return;
+  runDataLoaded = true;
+
+  const { data, error } = await sb.from('runs')
+    .select('started_at, distance_km, duration_seconds, calories, avg_pace')
+    .eq('user_id', currentUser.id)
+    .order('started_at', { ascending: false })
+    .limit(50);
+
+  if (error || !data?.length) {
+    document.getElementById('data-runs').innerHTML = '<div class="data-empty">Nog geen runs. Start de tracker om data te verzamelen.</div>';
+    document.getElementById('data-chart').innerHTML = '';
+    return;
+  }
+
+  // Totals
+  const totalKm = data.reduce((s, r) => s + r.distance_km, 0);
+  const totalSec = data.reduce((s, r) => s + r.duration_seconds, 0);
+  const totalKcal = data.reduce((s, r) => s + r.calories, 0);
+  const totalH = Math.floor(totalSec / 3600), totalM = Math.floor((totalSec % 3600) / 60);
+
+  document.getElementById('ds-runs').textContent = data.length;
+  document.getElementById('ds-km').textContent = totalKm.toFixed(1);
+  document.getElementById('ds-time').textContent = totalH > 0 ? `${totalH}u ${totalM}m` : `${totalM}m`;
+  document.getElementById('ds-kcal').textContent = totalKcal.toLocaleString('nl-NL');
+
+  // Weekly chart
+  const weeks = {};
+  data.forEach(r => {
+    const d = new Date(r.started_at);
+    const mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    const key = mon.toISOString().slice(0, 10);
+    weeks[key] = (weeks[key] || 0) + r.distance_km;
+  });
+  const weekKeys = Object.keys(weeks).sort().slice(-8);
+  const maxKm = Math.max(...weekKeys.map(k => weeks[k]));
+  const chart = document.getElementById('data-chart');
+  chart.innerHTML = weekKeys.map(k => {
+    const pct = maxKm > 0 ? (weeks[k] / maxKm * 100) : 0;
+    const label = new Date(k).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+    return `<div class="chart-col">
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:${pct}%"></div></div>
+      <div class="chart-km">${weeks[k].toFixed(1)}</div>
+      <div class="chart-label">${label}</div>
+    </div>`;
+  }).join('');
+
+  // Run list
+  document.getElementById('data-runs').innerHTML = data.map(r => {
+    const date = new Date(r.started_at).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'long' });
+    const time = new Date(r.started_at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+    const min = Math.floor(r.duration_seconds / 60), sec = r.duration_seconds % 60;
+    return `<div class="run-item">
+      <div class="run-meta">${date} · ${time}</div>
+      <div class="run-stats">
+        <span class="run-km">${r.distance_km.toFixed(2)} km</span>
+        <span>${r.avg_pace} /km</span>
+        <span>${min}:${String(sec).padStart(2,'0')} min</span>
+        <span>${r.calories} kcal</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ===== TOAST =====
