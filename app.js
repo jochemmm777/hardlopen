@@ -119,7 +119,7 @@ let localSchedule = {}; // overridden sessions per week/day
 let authMode = 'login';
 let dragItem = null, dragSrc = null;
 let userProfile = {};
-let pendingAvatarDataUrl = null;
+let pendingAvatarFile = null;
 
 // ===== PROFILE & THEME =====
 function applyTheme(theme) {
@@ -154,7 +154,7 @@ function openSettings() {
   document.getElementById('settings-overlay').classList.add('open');
   document.getElementById('sp-name').value = userProfile.name || '';
   document.getElementById('sp-status').value = userProfile.status || '';
-  pendingAvatarDataUrl = null;
+  pendingAvatarFile = null;
   renderSettingsAvatar(userProfile.avatar_url || null);
   applyTheme(localStorage.getItem('theme') || 'dark');
 }
@@ -162,7 +162,7 @@ function openSettings() {
 function closeSettings() {
   document.getElementById('settings-panel').classList.remove('open');
   document.getElementById('settings-overlay').classList.remove('open');
-  pendingAvatarDataUrl = null;
+  pendingAvatarFile = null;
 }
 
 function renderSettingsAvatar(src) {
@@ -181,24 +181,24 @@ function setTheme(theme) { applyTheme(theme); }
 function previewAvatar(input) {
   const file = input.files[0];
   if (!file) return;
-  resizeImage(file).then(dataUrl => {
-    pendingAvatarDataUrl = dataUrl;
-    renderSettingsAvatar(dataUrl);
+  resizeImageToBlob(file).then(blob => {
+    pendingAvatarFile = blob;
+    renderSettingsAvatar(URL.createObjectURL(blob));
   });
 }
 
-function resizeImage(file) {
+function resizeImageToBlob(file) {
   return new Promise(resolve => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = 120; canvas.height = 120;
+      canvas.width = 200; canvas.height = 200;
       const ctx = canvas.getContext('2d');
       const min = Math.min(img.width, img.height);
-      ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, 120, 120);
+      ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, 200, 200);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', 0.75));
+      canvas.toBlob(resolve, 'image/jpeg', 0.8);
     };
     img.src = url;
   });
@@ -225,14 +225,25 @@ async function saveProfile() {
   btn.textContent = 'Opslaan...';
   btn.disabled = true;
   const updates = { ...userProfile, name: name || userProfile.name, status, theme: localStorage.getItem('theme') || 'dark' };
-  if (pendingAvatarDataUrl) updates.avatar_url = pendingAvatarDataUrl;
+
+  if (pendingAvatarFile) {
+    const path = `${currentUser.id}/avatar.jpg`;
+    const { error: uploadErr } = await sb.storage.from('avatars').upload(path, pendingAvatarFile, { upsert: true, contentType: 'image/jpeg' });
+    if (uploadErr) {
+      toast('❌ Foto fout', uploadErr.message);
+    } else {
+      const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+      updates.avatar_url = urlData.publicUrl + '?t=' + Date.now();
+    }
+  }
+
   const { data, error } = await sb.auth.updateUser({ data: updates });
   btn.textContent = 'Opslaan';
   btn.disabled = false;
-  if (error) { toast('❌ Fout', 'Kon profiel niet opslaan.'); return; }
+  if (error) { toast('❌ Fout', 'Kon profiel niet opslaan: ' + error.message); return; }
   currentUser = data.user;
   userProfile = data.user.user_metadata;
-  pendingAvatarDataUrl = null;
+  pendingAvatarFile = null;
   renderHeaderAvatar();
   closeSettings();
   toast('✅ Opgeslagen!', 'Je profiel is bijgewerkt.');
