@@ -1049,12 +1049,14 @@ function confetti() {
   homePage.addEventListener('touchend', e => {
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
-    // Bereken richting zelf — niet afhankelijk van isHoriz uit touchmove
     if (Math.abs(dx) >= 50 && Math.abs(dx) > Math.abs(dy)) {
-      const prev = currentWeek;
-      if (dx < 0) changeWeek(1);
-      else changeWeek(-1);
-      if (currentWeek !== prev) loadHomeData();
+      const next = currentWeek + (dx < 0 ? 1 : -1);
+      if (next >= 0 && next <= 12) {
+        currentWeek = next;
+        localStorage.setItem('currentWeek', currentWeek);
+        loadHomeData();          // direct refreshen zonder changeWeek()
+        setTimeout(render, 0);  // schema op achtergrond bijwerken
+      }
     }
     snapBack();
   }, { passive: true });
