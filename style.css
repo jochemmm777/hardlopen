@@ -23,6 +23,11 @@ body {
   overflow-x: hidden;
 }
 
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 /* ===== AUTH ===== */
 #auth-screen {
   min-height: 100vh;
