@@ -620,14 +620,56 @@ function showPage(page) {
   document.getElementById('page-training').style.display = page === 'training' ? 'block' : 'none';
   document.getElementById('page-voeding').style.display = page === 'voeding' ? 'block' : 'none';
   document.getElementById('page-data').style.display = page === 'data' ? 'block' : 'none';
+  document.getElementById('page-reflecties').style.display = page === 'reflecties' ? 'block' : 'none';
+  // Tabs: 0=training, 1=voeding, 2=data, 3=reflecties, 4=tracker (anchor)
   document.querySelectorAll('.page-tab').forEach((t, i) => {
     t.classList.toggle('active',
       (i === 0 && page === 'training') ||
       (i === 1 && page === 'voeding') ||
-      (i === 2 && page === 'data')
+      (i === 2 && page === 'data') ||
+      (i === 3 && page === 'reflecties')
     );
   });
   if (page === 'data') loadRunData();
+  if (page === 'reflecties') loadReflections();
+}
+
+let reflectionsLoaded = false;
+
+async function loadReflections() {
+  if (reflectionsLoaded) return;
+  reflectionsLoaded = true;
+
+  const container = document.getElementById('reflecties-content');
+  container.innerHTML = '<div class="reflect-empty">Laden...</div>';
+
+  const { data, error } = await sb.from('runs')
+    .select('started_at, think_about, reflection_answered, reflection_notes')
+    .eq('user_id', currentUser.id)
+    .not('think_about', 'is', null)
+    .order('started_at', { ascending: false })
+    .limit(50);
+
+  if (error || !data?.length) {
+    container.innerHTML = '<div class="reflect-empty">Nog geen reflecties gevonden. Stel een vraag voor je run in de tracker.</div>';
+    return;
+  }
+
+  container.innerHTML = data.map(r => {
+    const date = new Date(r.started_at).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+    const answered = r.reflection_answered === true
+      ? '<span class="rc-badge badge-yes">✓ Antwoord gekregen</span>'
+      : r.reflection_answered === false
+        ? '<span class="rc-badge badge-no">✗ Nog niet</span>'
+        : '';
+    const notes = r.reflection_notes ? `<div class="reflect-card-notes">${r.reflection_notes}</div>` : '';
+    return `<div class="reflect-card">
+      <div class="reflect-card-date">${date}</div>
+      <div class="reflect-card-q">${r.think_about}</div>
+      ${answered}
+      ${notes}
+    </div>`;
+  }).join('');
 }
 
 const PACE_COLORS = [
@@ -743,6 +785,9 @@ async function loadRunData() {
     const routeBtn = r.route_json
       ? `<button class="run-map-btn" onclick='openRunMap(${JSON.stringify(r.route_json)}, "${date}")'>📍 Bekijk route</button>`
       : '';
+    const gpxBtn = r.route_json
+      ? `<button class="run-map-btn run-gpx-btn" onclick='downloadRunGPX(${JSON.stringify(r.route_json)}, "${date}")'>⬇️ GPX</button>`
+      : '';
     return `<div class="run-item">
       <div class="run-meta">${date} · ${time}</div>
       <div class="run-stats">
@@ -752,9 +797,36 @@ async function loadRunData() {
         <span>${r.calories} kcal</span>
       </div>
       ${reflectHTML}
-      ${routeBtn}
+      <div class="run-btn-row">${routeBtn}${gpxBtn}</div>
     </div>`;
   }).join('');
+}
+
+// ===== GPX EXPORT =====
+function downloadRunGPX(routeJsonStr, dateStr) {
+  let coords;
+  try { coords = typeof routeJsonStr === 'string' ? JSON.parse(routeJsonStr) : routeJsonStr; }
+  catch (e) { toast('❌ Fout', 'Ongeldige route data.'); return; }
+  if (!coords?.length) { toast('⚠️ Geen route', 'Geen GPS-punten beschikbaar.'); return; }
+  const trkpts = coords.map(([lat, lng]) =>
+    `      <trkpt lat="${parseFloat(lat).toFixed(7)}" lon="${parseFloat(lng).toFixed(7)}"/>`
+  ).join('\n');
+  const gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Hardloop Tracker" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>${dateStr || 'Run'}</name>
+    <trkseg>
+${trkpts}
+    </trkseg>
+  </trk>
+</gpx>`;
+  const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `run_${(dateStr || 'export').replace(/[^a-zA-Z0-9]/g, '_')}.gpx`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ===== TOAST =====

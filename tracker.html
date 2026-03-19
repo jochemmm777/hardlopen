@@ -59,6 +59,9 @@
     <span class="pace-legend-lbl">Snel</span>
   </div>
 
+  <!-- Today session bar -->
+  <div id="today-session-bar" class="today-session" style="display:none"></div>
+
   <!-- Stats panel -->
   <div class="stats-panel">
     <div class="stats-row">
@@ -133,6 +136,9 @@
     <div class="modal-actions" style="margin-top:1.25rem">
       <button class="btn-discard" onclick="discardRun()">Weggooien</button>
       <button class="btn-save" id="btn-save-run" onclick="saveRun()">Opslaan</button>
+    </div>
+    <div style="margin-top:0.75rem;text-align:center">
+      <button class="btn-gpx" onclick="downloadGPX()">⬇️ GPX exporteren</button>
     </div>
   </div>
 </div>

@@ -36,15 +36,58 @@ function getPaceColorIdx(secPerKm) {
   return 9;
 }
 
+// ===== SCHEMA DATA (minimale kopie voor today-sessie lookup) =====
+const TRACKER_WEEKS = [
+  // Week 0
+  [{t:'rust',d:null},{t:'rust',d:null},{t:'fietsen',d:null},{t:'lopen',d:null},{t:'rust',d:null},{t:'rust',d:null},{t:'lopen',d:null}],
+  // Week 1
+  [{t:'fietsen',d:null},{t:'lopen',d:'5 km (met wandelen)'},{t:'fietsen',d:null},{t:'lopen',d:'5 km'},{t:'fietsen',d:null},{t:'lopen',d:'5 km'},{t:'fietsen',d:null}],
+  // Week 2
+  [{t:'fietsen',d:null},{t:'lopen',d:'5 km'},{t:'fietsen',d:null},{t:'lopen',d:'5 km'},{t:'fietsen',d:null},{t:'lopen',d:'6 km'},{t:'fietsen',d:null}],
+  // Week 3
+  [{t:'fietsen',d:null},{t:'lopen',d:'5 km'},{t:'fietsen',d:null},{t:'lopen',d:'6 km'},{t:'fietsen',d:null},{t:'lopen',d:'7 km'},{t:'fietsen',d:null}],
+  // Week 4
+  [{t:'fietsen',d:null},{t:'lopen',d:'6 km'},{t:'fietsen',d:null},{t:'lopen',d:'6 km'},{t:'fietsen',d:null},{t:'lopen',d:'8 km'},{t:'fietsen',d:null}],
+  // Week 5
+  [{t:'fietsen',d:null},{t:'lopen',d:'6 km'},{t:'fietsen',d:null},{t:'lopen',d:'7 km'},{t:'fietsen',d:null},{t:'lopen',d:'9 km'},{t:'fietsen',d:null}],
+  // Week 6
+  [{t:'fietsen',d:null},{t:'lopen',d:'6 km'},{t:'fietsen',d:null},{t:'lopen',d:'7 km'},{t:'fietsen',d:null},{t:'lopen',d:'10 km'},{t:'fietsen',d:null}],
+  // Week 7
+  [{t:'fietsen',d:null},{t:'lopen',d:'7 km'},{t:'fietsen',d:null},{t:'lopen',d:'7 km'},{t:'fietsen',d:null},{t:'lopen',d:'12 km'},{t:'fietsen',d:null}],
+  // Week 8
+  [{t:'fietsen',d:null},{t:'lopen',d:'7 km'},{t:'fietsen',d:null},{t:'lopen',d:'6 km'},{t:'fietsen',d:null},{t:'lopen',d:'14 km'},{t:'fietsen',d:null}],
+  // Week 9
+  [{t:'fietsen',d:null},{t:'lopen',d:'8 km'},{t:'fietsen',d:null},{t:'lopen',d:'7 km'},{t:'fietsen',d:null},{t:'lopen',d:'15 km'},{t:'fietsen',d:null}],
+  // Week 10
+  [{t:'fietsen',d:null},{t:'lopen',d:'8 km'},{t:'fietsen',d:null},{t:'lopen',d:'7 km'},{t:'fietsen',d:null},{t:'lopen',d:'17 km'},{t:'fietsen',d:null}],
+  // Week 11
+  [{t:'fietsen',d:null},{t:'lopen',d:'6 km'},{t:'fietsen',d:null},{t:'lopen',d:'5 km'},{t:'fietsen',d:null},{t:'lopen',d:'18 km'},{t:'fietsen',d:null}],
+  // Week 12
+  [{t:'fietsen',d:null},{t:'lopen',d:'5 km'},{t:'fietsen',d:null},{t:'lopen',d:'5 km'},{t:'fietsen',d:null},{t:'race',d:'21,1 km'},{t:'fietsen',d:null}],
+];
+
+function getTodaySession() {
+  const week = Math.min(Math.floor((Date.now() - new Date(2026, 2, 19)) / 604800000), 12);
+  if (week < 0) return null;
+  const dayIdx = (new Date().getDay() + 6) % 7; // Monday=0
+  const entry = TRACKER_WEEKS[week]?.[dayIdx];
+  if (!entry || (entry.t !== 'lopen' && entry.t !== 'race')) return null;
+  const km = entry.d ? parseFloat((entry.d.match(/(\d+(?:,\d+)?)/) || [])[1]?.replace(',', '.')) || null : null;
+  return { week, dayIdx, type: entry.t, detail: entry.d, targetKm: km };
+}
+
 // ===== STATE =====
 let currentUser = null;
 let map = null, posMarker = null;
 let routePolylines = []; // gekleurde segmenten
+let kmMarkers = []; // km-marker divIcons op de kaart
 let watchId = null;
 let tracking = false, paused = false;
 let routeCoords = [], lastPoint = null; // routeCoords: [[lat,lng,colorIdx],...]
 let recentPoints = []; // voor 30s smooth pace
 let totalDistanceKm = 0;
+let lastCompletedKm = 0;
+let kmSplitStartTime = null;
 let startTime = null, endTime = null, pausedMs = 0, pauseStartTime = null;
 let finalElapsedSeconds = 0;
 let timerInterval = null;
@@ -163,6 +206,26 @@ function onPosition(pos) {
     // Filter: moved less than 3 meters — not worth adding
     if (dist < 0.003) return;
     totalDistanceKm += dist;
+
+    // Km split check
+    const completedKm = Math.floor(totalDistanceKm);
+    if (completedKm > lastCompletedKm) {
+      const splitMs = now - kmSplitStartTime;
+      const splitSecPerKm = splitMs / 1000;
+      const splitMin = Math.floor(splitSecPerKm / 60);
+      const splitSec = Math.round(splitSecPerKm % 60);
+      toast(`🏁 Km ${completedKm}`, `Split: ${splitMin}:${pad(splitSec)} /km`);
+      // Km marker op kaart
+      const kmIcon = L.divIcon({
+        className: '',
+        html: `<div class="km-marker">${completedKm}</div>`,
+        iconSize: [24, 24], iconAnchor: [12, 12]
+      });
+      const kmMarker = L.marker([lat, lng], { icon: kmIcon }).addTo(map);
+      kmMarkers.push(kmMarker);
+      lastCompletedKm = completedKm;
+      kmSplitStartTime = now;
+    }
   }
 
   // Bereken smooth pace (30s venster)
@@ -249,8 +312,15 @@ async function beginRun(useInput) {
 
   routePolylines.forEach(p => p.remove());
   routePolylines = [];
+  kmMarkers.forEach(m => m.remove());
+  kmMarkers = [];
   routeCoords = []; totalDistanceKm = 0; lastPoint = null; recentPoints = [];
+  lastCompletedKm = 0; kmSplitStartTime = Date.now();
   pausedMs = 0; pauseStartTime = null;
+
+  // Hide today-session bar when tracking starts
+  const tsBar = document.getElementById('today-session-bar');
+  if (tsBar) tsBar.style.display = 'none';
 
   if (!startGPS()) return;
 
@@ -360,16 +430,28 @@ async function saveRun() {
 
   document.getElementById('summary-modal').classList.remove('open');
   toast('✅ Opgeslagen!', 'Run toegevoegd aan je geschiedenis.');
+
+  // Schema sync offer
+  const todaySess = getTodaySession();
+  if (todaySess && (todaySess.type === 'lopen' || todaySess.type === 'race')) {
+    offerSchemaSync(todaySess.week, todaySess.dayIdx);
+  }
+
   resetState();
 }
 
 function resetState() {
   routePolylines.forEach(p => p.remove());
   routePolylines = [];
+  kmMarkers.forEach(m => m.remove());
+  kmMarkers = [];
   routeCoords = []; totalDistanceKm = 0; lastPoint = null; recentPoints = [];
+  lastCompletedKm = 0; kmSplitStartTime = null;
   startTime = null; endTime = null; pausedMs = 0;
   finalElapsedSeconds = 0; thinkAbout = ''; reflectAnswered = null;
   updateStats();
+  // Re-show today-session bar
+  renderTodaySession();
 }
 
 // ===== HISTORY =====
@@ -429,8 +511,77 @@ function saveWeight() {
   closeWeightModal();
 }
 
+// ===== TODAY SESSION BAR =====
+function renderTodaySession() {
+  const bar = document.getElementById('today-session-bar');
+  if (!bar) return;
+  const sess = getTodaySession();
+  if (!sess) { bar.style.display = 'none'; return; }
+  const typeLabel = sess.type === 'race' ? '🏅 Race' : '🏃 Lopen';
+  const kmText = sess.targetKm ? ` — ${sess.targetKm} km` : '';
+  bar.innerHTML = `<span class="ts-label">Vandaag gepland:</span> <span class="ts-type">${typeLabel}</span><span class="ts-detail">${kmText}</span>`;
+  bar.style.display = 'flex';
+}
+
+// ===== SCHEMA SYNC =====
+function offerSchemaSync(week, dayIdx) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div'); t.className = 'toast';
+  t.innerHTML = `<div class="toast-icon">📅</div><div style="flex:1"><div class="toast-title">Schema bijwerken?</div><div class="toast-msg">Wil je dit ook in je trainingsschema markeren?</div><button class="toast-sync-btn" onclick="syncToSchema(${week},${dayIdx},this)">Ja, markeer</button></div><button class="toast-close">✕</button>`;
+  c.appendChild(t);
+  function dismiss() { t.classList.add('out'); setTimeout(() => t.remove(), 280); }
+  t.querySelector('.toast-close').addEventListener('click', dismiss);
+  setTimeout(dismiss, 8000);
+}
+
+async function syncToSchema(week, dayIdx, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  const distKm = Math.round(totalDistanceKm * 100) / 100 || Math.round(finalElapsedSeconds > 0 ? finalElapsedSeconds / 360 : 0);
+  const { error } = await sb.from('progress').upsert({
+    user_id: currentUser.id,
+    week,
+    day_index: dayIdx,
+    done: true,
+    km: distKm,
+  }, { onConflict: 'user_id,week,day_index' });
+  if (error) { toast('❌ Fout', error.message); }
+  else { toast('✅ Schema bijgewerkt!', `Week ${week + 1}, dag ${dayIdx + 1} gemarkeerd.`); }
+  // Remove the offer toast
+  if (btn) btn.closest('.toast')?.remove();
+}
+
+// ===== GPX EXPORT =====
+function downloadGPX() {
+  if (!routeCoords.length) { toast('⚠️ Geen route', 'Nog geen GPS-punten opgenomen.'); return; }
+  const runName = startTime ? new Date(startTime).toISOString() : new Date().toISOString();
+  const trkpts = routeCoords.map(([lat, lng]) =>
+    `      <trkpt lat="${lat.toFixed(7)}" lon="${lng.toFixed(7)}"/>`
+  ).join('\n');
+  const gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Hardloop Tracker" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>${runName}</name>
+    <trkseg>
+${trkpts}
+    </trkseg>
+  </trk>
+</gpx>`;
+  const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `run_${runName.slice(0, 10)}.gpx`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // Init weight display
 document.getElementById('weight-val').textContent = userWeightKg;
+
+// Init today-session bar on load
+document.addEventListener('DOMContentLoaded', renderTodaySession);
+// Also call directly in case DOM is already ready
+renderTodaySession();
 
 // ===== TOAST =====
 function toast(title, msg, dur = 3000) {
