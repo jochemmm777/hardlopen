@@ -528,8 +528,8 @@ async function toggleDoneHome(week, dayIdx) {
   const ds = getDs(week, dayIdx);
   const newDone = !ds.done;
   await saveRow(week, dayIdx, { done: newDone });
-  render();
   loadHomeData();
+  setTimeout(render, 0);
   if (newDone) {
     const c = COMP_DAY[Math.floor(Math.random() * COMP_DAY.length)];
     toast(c[0], c[1]);
