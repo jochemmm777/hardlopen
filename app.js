@@ -216,7 +216,7 @@ async function deleteAccount() {
     toast('❌ Fout', 'Kon account niet verwijderen: ' + error.message);
     return;
   }
-  await sb.auth.signOut();
+  logout();
 }
 
 async function saveProfile() {
@@ -297,9 +297,11 @@ async function submitAuth() {
 }
 
 async function logout() {
-  await sb.auth.signOut();
+  sb.auth.signOut().catch(() => {});
   currentUser = null;
   dbState = {};
+  userProfile = {};
+  closeSettings();
   document.getElementById('app').style.display = 'none';
   document.getElementById('auth-screen').style.display = 'flex';
 }
