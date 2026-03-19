@@ -425,14 +425,16 @@ header {
 .home-week-card { will-change: transform; }
 .home-upcoming-list { will-change: transform, opacity; }
 
-/* Grote taptarget (44x44) met klein visueel bolletje erin */
-.uc-check-wrap {
+/* Button als taptarget: native klik-events op alle platforms incl. iOS */
+.uc-check-btn {
   width: 44px; height: 44px;
+  background: none; border: none;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  margin: -10px -6px -10px -10px;
+  padding: 0;
+  margin: -10px -4px -10px -10px;
 }
 .uc-check {
   width: 24px; height: 24px;
@@ -442,7 +444,7 @@ header {
   transition: transform 0.15s, background 0.15s;
   pointer-events: none;
 }
-.uc-check-wrap:active .uc-check { transform: scale(0.88); }
+.uc-check-btn:active .uc-check { transform: scale(0.85); }
 .uc-check.done { background: var(--green); color: white; }
 .uc-check.todo { border: 2px solid #555; }
 .uc-check.fietsen-todo { border: 2px solid var(--green); }

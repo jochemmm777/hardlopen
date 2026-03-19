@@ -737,11 +737,10 @@ function loadHomeData() {
     const isToday = smartDate === 'Vandaag';
     const displayDay = (smartDate === 'Vandaag' || smartDate === 'Morgen') ? smartDate : item.day;
     const displayDate = (smartDate === 'Vandaag' || smartDate === 'Morgen') ? getDayDate(item.week, item.dayIdx) : '';
-    return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''} ${isToday ? 'uc-today' : ''}"
-        data-week="${item.week}" data-dayidx="${item.dayIdx}">
-      <div class="uc-check-wrap">
-        <div class="uc-check ${checkClass}">${checkIcon}</div>
-      </div>
+    return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''} ${isToday ? 'uc-today' : ''}">
+      <button class="uc-check-btn" data-week="${item.week}" data-dayidx="${item.dayIdx}" aria-label="Afvinken">
+        <span class="uc-check ${checkClass}">${checkIcon}</span>
+      </button>
       <div class="uc-body">
         <div class="uc-day-row">
           <span class="uc-day">${displayDay}</span>
@@ -1064,13 +1063,12 @@ function confetti() {
   weekCard.addEventListener('touchcancel', snapBack, { passive: true });
 })();
 
-// ===== HOME CHECK DELEGATION (eenmalig, werkt op dynamische kaartjes) =====
+// ===== HOME CHECK DELEGATION =====
+// Gebruik button zodat click altijd bubbles op iOS Safari
 document.getElementById('home-upcoming').addEventListener('click', e => {
-  const wrap = e.target.closest('.uc-check-wrap');
-  if (!wrap) return;
-  const card = wrap.closest('[data-week]');
-  if (!card) return;
-  toggleDoneHome(parseInt(card.dataset.week), parseInt(card.dataset.dayidx));
+  const btn = e.target.closest('.uc-check-btn');
+  if (!btn) return;
+  toggleDoneHome(parseInt(btn.dataset.week), parseInt(btn.dataset.dayidx));
 });
 
 // ===== INIT =====
