@@ -44,10 +44,11 @@
   <!-- Header -->
   <header>
     <div class="header-bar">
-      <button class="menu-btn" onclick="openMenu()" aria-label="Menu">
+      <button class="back-btn" id="back-btn" onclick="showPage('home')" style="display:none">←</button>
+      <button class="menu-btn" id="menu-btn" onclick="openMenu()" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>
-      <h1 class="site-title">HALVE <span>MARATHON</span></h1>
+      <h1 class="site-title" id="header-title">HALVE <span>MARATHON</span></h1>
       <div class="header-right">
         <div class="streak-badge">🔥 <span id="streak-num">0</span></div>
         <button class="avatar-btn" id="header-avatar" onclick="openSettings()">J</button>

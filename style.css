@@ -198,6 +198,24 @@ header {
   border: 1px solid rgba(244,99,30,0.25);
 }
 
+/* ===== BACK BUTTON ===== */
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.back-btn:hover { background: var(--card); }
+
 /* ===== HAMBURGER MENU BUTTON ===== */
 .menu-btn {
   background: none;
@@ -393,6 +411,12 @@ header {
 .upcoming-card.type-fietsen { border-left: 3px solid var(--green); }
 .upcoming-card.type-race { border-left: 3px solid var(--orange); }
 .upcoming-card.uc-done { opacity: 0.45; }
+.upcoming-card.uc-today {
+  border-color: rgba(244,99,30,0.4);
+  background: rgba(244,99,30,0.05);
+}
+.uc-check { transition: transform 0.15s; }
+.uc-check:hover { transform: scale(1.15); }
 
 .uc-check {
   width: 22px; height: 22px;

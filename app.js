@@ -107,6 +107,17 @@ function getDayDate(week, dayIndex) {
   return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
 }
 
+function getSmartDate(week, dayIndex) {
+  const d = new Date(START_DATE);
+  d.setDate(d.getDate() + (week - 1) * 7 + dayIndex);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const target = new Date(d); target.setHours(0,0,0,0);
+  if (target.getTime() === today.getTime()) return 'Vandaag';
+  if (target.getTime() === tomorrow.getTime()) return 'Morgen';
+  return d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
 const PHASES = {0:'Opwarmer',1:'Weken 1–4',2:'Weken 1–4',3:'Weken 1–4',4:'Weken 1–4',5:'Weken 5–8',6:'Weken 5–8',7:'Weken 5–8',8:'Weken 5–8',9:'Weken 9–12',10:'Weken 9–12',11:'Weken 9–12',12:'Weken 9–12'};
 const COMP_EX = [['🔥 YES!','Weer een stap richting de finish!'],['💪 LEKKER!','Zo ga je dat, Jochem!'],['✅ GEDAAN!','Elke kilometer telt.'],['⚡ BOOM!','Rustig tempo is de sleutel!']];
 const COMP_DAY = [['🎉 DAG VOLTOOID!','Jochem pakt het helemaal af!'],['🏅 KLAAR!','Zo bouw je een halve marathon op!'],['💥 DONE!','De finish komt dichterbij!']];
@@ -475,10 +486,14 @@ function renderDays() {
       </div>`;
     }
 
+    const smartLabel = getSmartDate(currentWeek, di);
+    const displayDay = (smartLabel === 'Vandaag' || smartLabel === 'Morgen') ? smartLabel : day.day;
+    const displayDate = (smartLabel === 'Vandaag' || smartLabel === 'Morgen') ? getDayDate(currentWeek, di) : smartLabel.replace(/^[a-z]/, c => c.toUpperCase()).split(' ').slice(1).join(' ');
+
     card.innerHTML = `
       <div class="day-header">
         <div>
-          <span class="day-name">${day.day}</span>
+          <span class="day-name">${displayDay}</span>
           <span class="day-date">${getDayDate(currentWeek, di)}</span>
         </div>
         <span class="day-tag ${tagClass}">${tagLabel}</span>
@@ -506,6 +521,20 @@ function renderStreak() {
     }
   }
   document.getElementById('streak-num').textContent = streak;
+}
+
+// ===== TOGGLE DONE FROM HOME =====
+async function toggleDoneHome(week, dayIdx) {
+  const ds = getDs(week, dayIdx);
+  const newDone = !ds.done;
+  await saveRow(week, dayIdx, { done: newDone });
+  render();
+  loadHomeData();
+  if (newDone) {
+    const c = COMP_DAY[Math.floor(Math.random() * COMP_DAY.length)];
+    toast(c[0], c[1]);
+    confetti();
+  }
 }
 
 // ===== ACTIONS =====
@@ -625,6 +654,14 @@ function closeMenu() {
   document.getElementById('nav-overlay').classList.remove('open');
 }
 
+const PAGE_TITLES = {
+  home: 'HALVE <span>MARATHON</span>',
+  training: '← TRAININGS<span>SCHEMA</span>',
+  voeding: '← <span>VOEDING</span>',
+  data: '← DATA & <span>STATS</span>',
+  reflecties: '← <span>REFLECTIES</span>',
+};
+
 // ===== PAGE NAV =====
 function showPage(page) {
   const pages = ['home', 'training', 'voeding', 'data', 'reflecties'];
@@ -637,6 +674,14 @@ function showPage(page) {
     const el = document.getElementById('nm-' + p);
     if (el) el.classList.toggle('active-page', p === page);
   });
+  // Back button + header title
+  const backBtn = document.getElementById('back-btn');
+  const menuBtn = document.getElementById('menu-btn');
+  const title = document.getElementById('header-title');
+  if (backBtn) backBtn.style.display = page === 'home' ? 'none' : 'flex';
+  if (menuBtn) menuBtn.style.display = page === 'home' ? 'flex' : 'none';
+  if (title) title.innerHTML = PAGE_TITLES[page] || PAGE_TITLES.home;
+
   if (page === 'home') loadHomeData();
   if (page === 'data') loadRunData();
   if (page === 'reflecties') loadReflections();
@@ -698,12 +743,14 @@ function loadHomeData() {
     const tagLabel = { lopen: 'Hardlopen', fietsen: 'Fietsen', race: 'Race!' }[item.type] || item.type;
     const checkClass = item.done ? 'done' : (item.type === 'fietsen' ? 'fietsen-todo' : 'todo');
     const checkIcon = item.done ? '✓' : '';
-    return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''}">
-      <div class="uc-check ${checkClass}">${checkIcon}</div>
+    const smartDate = getSmartDate(item.week, item.dayIdx);
+    const isToday = smartDate === 'Vandaag';
+    return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''} ${isToday ? 'uc-today' : ''}">
+      <div class="uc-check ${checkClass}" onclick="toggleDoneHome(${item.week}, ${item.dayIdx})" style="cursor:pointer">${checkIcon}</div>
       <div class="uc-body">
         <div class="uc-day-row">
-          <span class="uc-day">${item.day}</span>
-          <span class="uc-date">${item.date}</span>
+          <span class="uc-day">${smartDate === 'Vandaag' || smartDate === 'Morgen' ? smartDate : item.day}</span>
+          <span class="uc-date">${smartDate === 'Vandaag' || smartDate === 'Morgen' ? getDayDate(item.week, item.dayIdx) : ''}</span>
         </div>
         <div class="uc-detail">${item.detail || item.sessionName}</div>
       </div>
@@ -944,6 +991,22 @@ function confetti() {
   }
   if (raf) cancelAnimationFrame(raf); draw();
 }
+
+// ===== SWIPE WEEK NAV =====
+(function initSwipe() {
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].clientX;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const el = document.getElementById('page-training');
+    if (!el || el.style.display === 'none') return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) < 60) return; // minimum swipe distance
+    if (dx < 0) changeWeek(1);   // swipe left → next week
+    else changeWeek(-1);          // swipe right → prev week
+  }, { passive: true });
+})();
 
 // ===== INIT =====
 window.addEventListener('keydown', e => {
