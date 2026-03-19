@@ -1,0 +1,242 @@
+:root {
+  --bg: #0f0f0f;
+  --card: #1a1a1a;
+  --orange: #F4631E;
+  --green: #5CB85C;
+  --red: #e04040;
+  --text: #f0f0f0;
+  --text2: #888;
+  --border: rgba(255,255,255,0.08);
+}
+html[data-theme="light"] {
+  --bg: #f4f4f4;
+  --card: #fff;
+  --text: #111;
+  --text2: #666;
+  --border: rgba(0,0,0,0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+/* ===== AUTH ===== */
+#auth-screen {
+  position: fixed; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  background: var(--bg); z-index: 9999;
+}
+.auth-box {
+  width: 100%; max-width: 360px; padding: 2rem 1.5rem;
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.auth-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.8rem; line-height: 1; color: var(--text); margin-bottom: 0.25rem;
+}
+.auth-title span { color: var(--orange); }
+.auth-sub { color: var(--text2); font-size: 0.85rem; margin-bottom: 0.5rem; }
+.auth-input {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.75rem 1rem;
+  color: var(--text); font-size: 1rem; font-family: inherit; width: 100%;
+}
+.auth-input:focus { outline: 2px solid var(--orange); border-color: transparent; }
+.auth-btn {
+  background: var(--orange); color: #fff; border: none;
+  border-radius: 10px; padding: 0.85rem; font-size: 1rem;
+  font-weight: 600; cursor: pointer; width: 100%; font-family: inherit;
+}
+.auth-btn:disabled { opacity: 0.6; }
+.auth-error { color: #e05454; font-size: 0.83rem; min-height: 1.2em; }
+
+/* ===== MAP ===== */
+#map {
+  position: fixed; inset: 0;
+  z-index: 0;
+}
+
+/* ===== TOP BAR ===== */
+.top-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 1rem;
+  background: rgba(15,15,15,0.75); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+}
+.top-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem; letter-spacing: 0.05em; color: var(--text);
+}
+.top-btn {
+  background: none; border: none; color: var(--text);
+  font-size: 1.2rem; cursor: pointer; padding: 0.4rem 0.6rem;
+  border-radius: 8px; text-decoration: none; display: flex; align-items: center;
+}
+.top-btn:hover { background: var(--border); }
+
+/* ===== GPS ACCURACY ===== */
+.gps-acc {
+  position: fixed; top: 3.2rem; right: 0.75rem;
+  font-size: 0.7rem; font-weight: 600; padding: 0.25rem 0.5rem;
+  border-radius: 20px; z-index: 100; letter-spacing: 0.03em;
+}
+.gps-good { background: rgba(92,184,92,0.85); color: #fff; }
+.gps-ok   { background: rgba(244,99,30,0.85); color: #fff; }
+.gps-bad  { background: rgba(100,100,100,0.7); color: #ddd; }
+
+/* ===== STATS PANEL ===== */
+.stats-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(15,15,15,0.88); backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  padding: 1rem 1rem 1.5rem;
+  z-index: 100;
+}
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem; margin-bottom: 1rem;
+  text-align: center;
+}
+.stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem; color: var(--text); line-height: 1;
+}
+.stat-label { font-size: 0.65rem; color: var(--text2); margin-top: 0.15rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ===== CONTROLS ===== */
+.controls { display: flex; gap: 0.75rem; align-items: center; }
+
+.btn-start {
+  flex: 1; background: var(--orange); color: #fff;
+  border: none; border-radius: 14px; padding: 1rem;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem;
+  letter-spacing: 0.08em; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(244,99,30,0.4);
+}
+.btn-start:active { transform: scale(0.97); }
+
+.btn-pause {
+  flex: 1; background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: 14px; padding: 1rem;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem;
+  letter-spacing: 0.08em; cursor: pointer;
+}
+.btn-stop {
+  flex: 1; background: var(--red); color: #fff;
+  border: none; border-radius: 14px; padding: 1rem;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem;
+  letter-spacing: 0.08em; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(224,64,64,0.35);
+}
+.btn-pause:active, .btn-stop:active { transform: scale(0.97); }
+
+.btn-weight {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.6rem 0.75rem;
+  color: var(--text2); font-size: 0.78rem; cursor: pointer;
+  font-family: inherit; white-space: nowrap;
+}
+
+/* ===== MODALS ===== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 200; padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+  background: var(--card); border-radius: 20px;
+  padding: 1.75rem 1.5rem; width: 100%; max-width: 400px;
+  border: 1px solid var(--border);
+}
+.modal-box-tall { max-height: 80vh; display: flex; flex-direction: column; }
+.modal-box-sm { max-width: 320px; }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+.modal-close {
+  background: none; border: none; color: var(--text2);
+  font-size: 1rem; cursor: pointer; padding: 0.25rem;
+}
+.modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem; letter-spacing: 0.05em; color: var(--text);
+  margin-bottom: 1.25rem;
+}
+
+.sum-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+.sum-item { text-align: center; }
+.sum-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem; color: var(--orange);
+}
+.sum-label { font-size: 0.72rem; color: var(--text2); margin-top: 0.15rem; text-transform: uppercase; }
+
+.modal-actions { display: flex; gap: 0.75rem; }
+.btn-discard {
+  flex: 1; background: transparent; border: 1px solid var(--border);
+  border-radius: 12px; padding: 0.85rem; color: var(--text2);
+  font-size: 0.9rem; cursor: pointer; font-family: inherit;
+}
+.btn-save {
+  flex: 2; background: var(--orange); border: none;
+  border-radius: 12px; padding: 0.85rem; color: #fff;
+  font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.btn-save:disabled { opacity: 0.6; }
+
+/* ===== HISTORY ===== */
+.history-list {
+  overflow-y: auto; flex: 1;
+  display: flex; flex-direction: column; gap: 0.6rem;
+}
+.hist-item {
+  background: rgba(255,255,255,0.04); border-radius: 12px;
+  padding: 0.85rem 1rem; border: 1px solid var(--border);
+}
+.hist-date { font-size: 0.75rem; color: var(--text2); margin-bottom: 0.4rem; }
+.hist-stats {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+  font-size: 0.9rem; font-weight: 500;
+}
+.hist-stats span { color: var(--text); }
+.hist-stats span:first-child { color: var(--orange); font-weight: 700; }
+.hist-loading, .hist-empty { color: var(--text2); font-size: 0.9rem; text-align: center; padding: 2rem; }
+
+/* ===== LEAFLET OVERRIDES ===== */
+.leaflet-control-attribution { font-size: 0.6rem !important; }
+
+/* Custom position marker */
+.pos-marker-icon {
+  width: 18px; height: 18px;
+  background: var(--orange); border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(244,99,30,0.3);
+}
+
+/* ===== TOAST ===== */
+#toast-container {
+  position: fixed; top: 4rem; right: 1rem;
+  z-index: 9999; display: flex; flex-direction: column; gap: 0.4rem;
+  pointer-events: none;
+}
+.toast {
+  background: var(--card); border: 1px solid var(--orange);
+  border-radius: 11px; padding: 0.65rem 0.9rem;
+  display: flex; gap: 0.5rem; align-items: center;
+  pointer-events: auto; max-width: 260px;
+  animation: tin 0.3s cubic-bezier(.4,0,.2,1) forwards;
+}
+.toast.out { animation: tout 0.25s ease forwards; }
+.toast-icon { font-size: 1rem; flex-shrink: 0; }
+.toast-title { font-weight: 600; font-size: 0.82rem; color: var(--text); }
+.toast-msg { font-size: 0.72rem; color: var(--text2); margin-top: 0.1rem; }
+@keyframes tin  { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:none; } }
+@keyframes tout { from { opacity:1; } to { opacity:0; transform:translateX(30px); } }

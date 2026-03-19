@@ -1,4 +1,31 @@
 -- Voer dit uit in de Supabase SQL Editor
+-- =============================================
+-- RUNS TABLE (voor de hardloop tracker)
+-- =============================================
+
+create table runs (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users not null,
+  started_at timestamptz not null,
+  ended_at timestamptz not null,
+  distance_km float not null,
+  duration_seconds int not null,
+  calories int not null,
+  avg_pace text,
+  route_json text,
+  created_at timestamptz default now()
+);
+
+alter table runs enable row level security;
+
+create policy "Users can manage own runs"
+on runs for all
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+-- =============================================
+-- PROGRESS TABLE (voor de training planner)
+-- =============================================
 
 create table progress (
   id uuid default gen_random_uuid() primary key,
