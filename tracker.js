@@ -8,12 +8,42 @@ const SUPABASE_URL = 'https://tbvdpvqteawevfkwknys.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MIkAatqn4V3R813p8RqYmQ_ZzBN3NMb';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ===== PACE COLORS =====
+const PACE_COLORS = [
+  '#a8f5a0', // 0  > 7:30/km  lichtgroen (langzaam)
+  '#60e060', // 1  7:00-7:30
+  '#20c040', // 2  6:30-7:00
+  '#80cc00', // 3  6:00-6:30  limoen
+  '#e0c800', // 4  5:30-6:00  geel
+  '#f08000', // 5  5:00-5:30  oranje
+  '#e04010', // 6  4:30-5:00  rood-oranje
+  '#c00080', // 7  4:00-4:30  roze
+  '#8000c0', // 8  3:30-4:00  paars
+  '#40007a', // 9  < 3:30/km  donkerpaars (snel)
+];
+const PACE_LABELS = ['>7:30','7:00','6:30','6:00','5:30','5:00','4:30','4:00','3:30','<3:30'];
+// Drempelwaarden in sec/km (hoog = langzaam)
+function getPaceColorIdx(secPerKm) {
+  if (secPerKm >= 450) return 0;
+  if (secPerKm >= 420) return 1;
+  if (secPerKm >= 390) return 2;
+  if (secPerKm >= 360) return 3;
+  if (secPerKm >= 330) return 4;
+  if (secPerKm >= 300) return 5;
+  if (secPerKm >= 270) return 6;
+  if (secPerKm >= 240) return 7;
+  if (secPerKm >= 210) return 8;
+  return 9;
+}
+
 // ===== STATE =====
 let currentUser = null;
-let map = null, polyline = null, posMarker = null;
+let map = null, posMarker = null;
+let routePolylines = []; // gekleurde segmenten
 let watchId = null;
 let tracking = false, paused = false;
-let routeCoords = [], lastPoint = null;
+let routeCoords = [], lastPoint = null; // routeCoords: [[lat,lng,colorIdx],...]
+let recentPoints = []; // voor 30s smooth pace
 let totalDistanceKm = 0;
 let startTime = null, endTime = null, pausedMs = 0, pauseStartTime = null;
 let finalElapsedSeconds = 0;
@@ -135,14 +165,28 @@ function onPosition(pos) {
     totalDistanceKm += dist;
   }
 
+  // Bereken smooth pace (30s venster)
+  recentPoints.push({ lat, lng, time: now, totalDist: totalDistanceKm });
+  recentPoints = recentPoints.filter(p => now - p.time < 30000);
+  let smoothedPaceSecPerKm = 999;
+  if (recentPoints.length >= 2) {
+    const first = recentPoints[0], last = recentPoints[recentPoints.length - 1];
+    const d = last.totalDist - first.totalDist;
+    const s = (last.time - first.time) / 1000;
+    if (d > 0.005) smoothedPaceSecPerKm = s / d;
+  }
+  const colorIdx = getPaceColorIdx(smoothedPaceSecPerKm);
+  const color = PACE_COLORS[colorIdx];
+
   lastPoint = { lat, lng, time: now };
-  routeCoords.push([lat, lng]);
+  routeCoords.push([lat, lng, colorIdx]);
   map.panTo([lat, lng]);
 
-  if (!polyline) {
-    polyline = L.polyline(routeCoords, { color: '#F4631E', weight: 5, opacity: 0.9 }).addTo(map);
-  } else {
-    polyline.setLatLngs(routeCoords);
+  // Teken gekleurd segment van vorig punt naar dit punt
+  if (routeCoords.length >= 2) {
+    const prev = routeCoords[routeCoords.length - 2];
+    const seg = L.polyline([[prev[0], prev[1]], [lat, lng]], { color, weight: 6, opacity: 0.9 }).addTo(map);
+    routePolylines.push(seg);
   }
 }
 
@@ -203,9 +247,10 @@ async function beginRun(useInput) {
   document.getElementById('think-modal').classList.remove('open');
   if (useInput) thinkAbout = document.getElementById('think-input').value.trim();
 
-  routeCoords = []; totalDistanceKm = 0; lastPoint = null;
+  routePolylines.forEach(p => p.remove());
+  routePolylines = [];
+  routeCoords = []; totalDistanceKm = 0; lastPoint = null; recentPoints = [];
   pausedMs = 0; pauseStartTime = null;
-  if (polyline) { polyline.remove(); polyline = null; }
 
   if (!startGPS()) return;
 
@@ -319,7 +364,9 @@ async function saveRun() {
 }
 
 function resetState() {
-  routeCoords = []; totalDistanceKm = 0; lastPoint = null;
+  routePolylines.forEach(p => p.remove());
+  routePolylines = [];
+  routeCoords = []; totalDistanceKm = 0; lastPoint = null; recentPoints = [];
   startTime = null; endTime = null; pausedMs = 0;
   finalElapsedSeconds = 0; thinkAbout = ''; reflectAnswered = null;
   updateStats();

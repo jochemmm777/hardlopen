@@ -780,6 +780,39 @@ html[data-theme="light"] .prog-track, html[data-theme="light"] .ov-track { backg
 .badge-no  { background: rgba(180,180,180,0.1); color: var(--text2); }
 .run-reflect-notes { font-size: 0.8rem; color: var(--text2); line-height: 1.5; margin-top: 0.2rem; }
 
+.run-map-btn {
+  margin-top: 0.6rem; background: transparent; border: 1px solid #2a2a26;
+  border-radius: 8px; padding: 0.4rem 0.75rem; color: var(--text2);
+  font-size: 0.78rem; cursor: pointer; font-family: inherit;
+}
+.run-map-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+/* Run map modal */
+.runmap-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  display: none; align-items: center; justify-content: center;
+  z-index: 9000; padding: 1rem;
+}
+.runmap-overlay.open { display: flex; }
+.runmap-box {
+  background: var(--card); border-radius: 20px; width: 100%; max-width: 600px;
+  max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;
+  border: 1px solid #2a2a26;
+}
+.runmap-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem; border-bottom: 1px solid #2a2a26; flex-shrink: 0;
+}
+.runmap-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; }
+.runmap-map { flex: 1; min-height: 300px; }
+.runmap-legend {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.75rem 1.25rem; border-top: 1px solid #2a2a26; flex-shrink: 0;
+}
+.runmap-legend-bar { flex: 1; display: flex; height: 10px; border-radius: 5px; overflow: hidden; }
+.runmap-legend-bar div { flex: 1; }
+.runmap-legend-lbl { font-size: 0.65rem; color: var(--text2); white-space: nowrap; }
+
 @media (max-width: 480px) {
   .data-totals { grid-template-columns: repeat(2, 1fr); }
   .run-stats { gap: 0.6rem; font-size: 0.8rem; }

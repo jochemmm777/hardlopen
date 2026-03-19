@@ -368,9 +368,38 @@
 </div>
 <div id="settings-overlay" onclick="closeSettings()"></div>
 
+<!-- Run map modal -->
+<div id="runmap-modal" class="runmap-overlay">
+  <div class="runmap-box">
+    <div class="runmap-header">
+      <span class="runmap-title" id="runmap-title">Route</span>
+      <button class="modal-close" onclick="closeRunMap()">✕</button>
+    </div>
+    <div id="runmap-map" class="runmap-map"></div>
+    <div class="runmap-legend">
+      <span class="runmap-legend-lbl">Langzaam</span>
+      <div class="runmap-legend-bar">
+        <div style="background:#a8f5a0" title=">7:30/km"></div>
+        <div style="background:#60e060" title="7:00-7:30"></div>
+        <div style="background:#20c040" title="6:30-7:00"></div>
+        <div style="background:#80cc00" title="6:00-6:30"></div>
+        <div style="background:#e0c800" title="5:30-6:00"></div>
+        <div style="background:#f08000" title="5:00-5:30"></div>
+        <div style="background:#e04010" title="4:30-5:00"></div>
+        <div style="background:#c00080" title="4:00-4:30"></div>
+        <div style="background:#8000c0" title="3:30-4:00"></div>
+        <div style="background:#40007a" title="<3:30/km"></div>
+      </div>
+      <span class="runmap-legend-lbl">Snel</span>
+    </div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 <canvas id="confetti-canvas"></canvas>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 </body>

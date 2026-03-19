@@ -630,6 +630,55 @@ function showPage(page) {
   if (page === 'data') loadRunData();
 }
 
+const PACE_COLORS = [
+  '#a8f5a0','#60e060','#20c040','#80cc00','#e0c800',
+  '#f08000','#e04010','#c00080','#8000c0','#40007a'
+];
+
+let runMapInstance = null;
+
+function openRunMap(routeJsonStr, label) {
+  const coords = JSON.parse(routeJsonStr);
+  if (!coords?.length) return;
+
+  document.getElementById('runmap-title').textContent = label || 'Route';
+  document.getElementById('runmap-modal').classList.add('open');
+
+  // Init map (or reset existing)
+  if (runMapInstance) {
+    runMapInstance.remove();
+    runMapInstance = null;
+  }
+  setTimeout(() => {
+    runMapInstance = L.map('runmap-map', { zoomControl: true, attributionControl: false }).setView([coords[0][0], coords[0][1]], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(runMapInstance);
+
+    // Teken gekleurde segmenten
+    const bounds = [];
+    for (let i = 1; i < coords.length; i++) {
+      const prev = coords[i - 1], curr = coords[i];
+      const colorIdx = (curr[2] !== undefined) ? curr[2] : 5;
+      L.polyline([[prev[0], prev[1]], [curr[0], curr[1]]], {
+        color: PACE_COLORS[colorIdx], weight: 5, opacity: 0.9
+      }).addTo(runMapInstance);
+      bounds.push([curr[0], curr[1]]);
+    }
+    bounds.push([coords[0][0], coords[0][1]]);
+    if (bounds.length > 1) runMapInstance.fitBounds(bounds, { padding: [20, 20] });
+
+    // Start en eind marker
+    L.circleMarker([coords[0][0], coords[0][1]], { radius: 7, color: '#fff', fillColor: '#5CB85C', fillOpacity: 1, weight: 2 }).addTo(runMapInstance).bindPopup('Start');
+    const last = coords[coords.length - 1];
+    L.circleMarker([last[0], last[1]], { radius: 7, color: '#fff', fillColor: '#F4631E', fillOpacity: 1, weight: 2 }).addTo(runMapInstance).bindPopup('Finish');
+
+    runMapInstance.invalidateSize();
+  }, 50);
+}
+
+function closeRunMap() {
+  document.getElementById('runmap-modal').classList.remove('open');
+}
+
 let runDataLoaded = false;
 
 async function loadRunData() {
@@ -637,7 +686,7 @@ async function loadRunData() {
   runDataLoaded = true;
 
   const { data, error } = await sb.from('runs')
-    .select('started_at, distance_km, duration_seconds, calories, avg_pace, think_about, reflection_answered, reflection_notes')
+    .select('started_at, distance_km, duration_seconds, calories, avg_pace, think_about, reflection_answered, reflection_notes, route_json')
     .eq('user_id', currentUser.id)
     .order('started_at', { ascending: false })
     .limit(50);
@@ -691,6 +740,9 @@ async function loadRunData() {
         ${r.reflection_answered !== null ? `<span class="run-reflect-badge ${r.reflection_answered ? 'badge-yes' : 'badge-no'}">${r.reflection_answered ? '✓ Antwoord gekregen' : '✗ Nog niet'}</span>` : ''}
         ${r.reflection_notes ? `<div class="run-reflect-notes">${r.reflection_notes}</div>` : ''}
       </div>` : '';
+    const routeBtn = r.route_json
+      ? `<button class="run-map-btn" onclick='openRunMap(${JSON.stringify(r.route_json)}, "${date}")'>📍 Bekijk route</button>`
+      : '';
     return `<div class="run-item">
       <div class="run-meta">${date} · ${time}</div>
       <div class="run-stats">
@@ -700,6 +752,7 @@ async function loadRunData() {
         <span>${r.calories} kcal</span>
       </div>
       ${reflectHTML}
+      ${routeBtn}
     </div>`;
   }).join('');
 }
