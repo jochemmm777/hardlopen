@@ -735,18 +735,24 @@ function loadHomeData() {
     const checkIcon = item.done ? '✓' : '';
     const smartDate = getSmartDate(item.week, item.dayIdx);
     const isToday = smartDate === 'Vandaag';
-    return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''} ${isToday ? 'uc-today' : ''}">
-      <div class="uc-check ${checkClass}" onclick="toggleDoneHome(${item.week}, ${item.dayIdx})" style="cursor:pointer">${checkIcon}</div>
+    const displayDay = (smartDate === 'Vandaag' || smartDate === 'Morgen') ? smartDate : item.day;
+    const displayDate = (smartDate === 'Vandaag' || smartDate === 'Morgen') ? getDayDate(item.week, item.dayIdx) : '';
+    return `<div class="upcoming-card type-${item.type} ${item.done ? 'uc-done' : ''} ${isToday ? 'uc-today' : ''}"
+        data-week="${item.week}" data-dayidx="${item.dayIdx}">
+      <div class="uc-check-wrap">
+        <div class="uc-check ${checkClass}">${checkIcon}</div>
+      </div>
       <div class="uc-body">
         <div class="uc-day-row">
-          <span class="uc-day">${smartDate === 'Vandaag' || smartDate === 'Morgen' ? smartDate : item.day}</span>
-          <span class="uc-date">${smartDate === 'Vandaag' || smartDate === 'Morgen' ? getDayDate(item.week, item.dayIdx) : ''}</span>
+          <span class="uc-day">${displayDay}</span>
+          <span class="uc-date">${displayDate}</span>
         </div>
         <div class="uc-detail">${item.detail || item.sessionName}</div>
       </div>
       <span class="uc-tag ${tagClass}">${tagLabel}</span>
     </div>`;
   }).join('');
+
 }
 
 let reflectionsLoaded = false;
@@ -984,30 +990,88 @@ function confetti() {
 
 // ===== SWIPE WEEK NAV =====
 (function initSwipe() {
-  let touchStartX = 0, touchStartY = 0;
+  // Swipe op trainingsschema (document-level, simpel)
+  let txStart = 0, tyStart = 0;
   document.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].clientX;
-    touchStartY = e.changedTouches[0].clientY;
+    txStart = e.touches[0].clientX;
+    tyStart = e.touches[0].clientY;
   }, { passive: true });
   document.addEventListener('touchend', e => {
     const training = document.getElementById('page-training');
-    const home = document.getElementById('page-home');
-    const onTraining = training && training.style.display !== 'none';
-    const onHome = home && home.style.display !== 'none';
-    if (!onTraining && !onHome) return;
-
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return; // min swipe, no vertical scroll
-
-    const prev = currentWeek;
-    if (dx < 0) changeWeek(1);   // swipe left → next week
-    else changeWeek(-1);          // swipe right → prev week
-
-    // If on home screen, refresh upcoming after week change
-    if (onHome && currentWeek !== prev) loadHomeData();
+    if (!training || training.style.display === 'none') return;
+    const dx = e.changedTouches[0].clientX - txStart;
+    const dy = e.changedTouches[0].clientY - tyStart;
+    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
+    if (dx < 0) changeWeek(1);
+    else changeWeek(-1);
   }, { passive: true });
+
+  // Swipe op home: visuele feedback tijdens drag
+  const weekCard = document.querySelector('.home-week-card');
+  const upcomingList = document.getElementById('home-upcoming');
+  if (!weekCard) return;
+
+  let startX = 0, startY = 0, dragging = false, isHoriz = null;
+
+  weekCard.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dragging = true;
+    isHoriz = null;
+    weekCard.style.transition = 'none';
+    if (upcomingList) upcomingList.style.transition = 'none';
+  }, { passive: true });
+
+  weekCard.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (isHoriz === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      isHoriz = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!isHoriz) return;
+    const clamped = Math.max(-120, Math.min(120, dx));
+    const factor = 1 - Math.abs(clamped) / 300;
+    weekCard.style.transform = `translateX(${clamped * 0.4}px) scale(${0.97 + factor * 0.03})`;
+    if (upcomingList) upcomingList.style.transform = `translateX(${clamped * 0.15}px)`;
+    if (upcomingList) upcomingList.style.opacity = 0.5 + factor * 0.5;
+  }, { passive: true });
+
+  function snapBack() {
+    weekCard.style.transition = 'transform 0.25s cubic-bezier(.4,0,.2,1)';
+    weekCard.style.transform = '';
+    if (upcomingList) {
+      upcomingList.style.transition = 'transform 0.25s cubic-bezier(.4,0,.2,1), opacity 0.25s';
+      upcomingList.style.transform = '';
+      upcomingList.style.opacity = '';
+    }
+    dragging = false;
+  }
+
+  weekCard.addEventListener('touchend', e => {
+    if (!dragging || !isHoriz) { snapBack(); return; }
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) >= 55) {
+      const prev = currentWeek;
+      if (dx < 0) changeWeek(1);
+      else changeWeek(-1);
+      if (currentWeek !== prev) loadHomeData();
+    }
+    snapBack();
+  }, { passive: true });
+
+  weekCard.addEventListener('touchcancel', snapBack, { passive: true });
 })();
+
+// ===== HOME CHECK DELEGATION (eenmalig, werkt op dynamische kaartjes) =====
+document.getElementById('home-upcoming').addEventListener('click', e => {
+  const wrap = e.target.closest('.uc-check-wrap');
+  if (!wrap) return;
+  const card = wrap.closest('[data-week]');
+  if (!card) return;
+  toggleDoneHome(parseInt(card.dataset.week), parseInt(card.dataset.dayidx));
+});
 
 // ===== INIT =====
 window.addEventListener('keydown', e => {

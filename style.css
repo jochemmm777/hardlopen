@@ -422,18 +422,29 @@ header {
   border-color: rgba(244,99,30,0.4);
   background: rgba(244,99,30,0.05);
 }
-.uc-check { transition: transform 0.15s; }
-.uc-check:hover { transform: scale(1.15); }
+.home-week-card { will-change: transform; }
+.home-upcoming-list { will-change: transform, opacity; }
 
+/* Grote taptarget (44x44) met klein visueel bolletje erin */
+.uc-check-wrap {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  margin: -10px -6px -10px -10px;
+}
 .uc-check {
-  width: 22px; height: 22px;
+  width: 24px; height: 24px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.7rem;
-  flex-shrink: 0;
+  font-size: 0.75rem;
+  transition: transform 0.15s, background 0.15s;
+  pointer-events: none;
 }
+.uc-check-wrap:active .uc-check { transform: scale(0.88); }
 .uc-check.done { background: var(--green); color: white; }
-.uc-check.todo { border: 2px solid #444; }
+.uc-check.todo { border: 2px solid #555; }
 .uc-check.fietsen-todo { border: 2px solid var(--green); }
 
 .uc-body { flex: 1; min-width: 0; }
