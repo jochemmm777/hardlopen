@@ -524,12 +524,14 @@ function renderStreak() {
 }
 
 // ===== TOGGLE DONE FROM HOME =====
-async function toggleDoneHome(week, dayIdx) {
-  const ds = getDs(week, dayIdx);
-  const newDone = !ds.done;
-  await saveRow(week, dayIdx, { done: newDone });
+function toggleDoneHome(week, dayIdx) {
+  const key = `w${week}_d${dayIdx}`;
+  if (!dbState[key]) dbState[key] = {};
+  const newDone = !dbState[key].done;
+  dbState[key].done = newDone;
   loadHomeData();
   setTimeout(render, 0);
+  saveRow(week, dayIdx, { done: newDone });
   if (newDone) {
     const c = COMP_DAY[Math.floor(Math.random() * COMP_DAY.length)];
     toast(c[0], c[1]);
