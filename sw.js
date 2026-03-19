@@ -1,4 +1,4 @@
-const CACHE = 'tracker-v1';
+const CACHE = 'tracker-v2';
 const ASSETS = ['tracker.html', 'tracker.js', 'tracker.css', 'icon.svg'];
 
 self.addEventListener('install', e => {
