@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jochem's Halve Marathon</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');</script>
 </head>
 <body>
 
@@ -41,7 +43,7 @@
       </div>
       <div class="header-right">
         <div class="streak-badge">🔥 <span id="streak-num">0</span> dagen</div>
-        <button class="logout-btn" onclick="logout()">Uitloggen</button>
+        <button class="avatar-btn" id="header-avatar" onclick="openSettings()">J</button>
       </div>
     </div>
     <div class="goal-bar">
@@ -293,6 +295,49 @@
   </div>
 
 </div>
+
+<!-- SETTINGS PANEL -->
+<div id="settings-panel" class="settings-panel">
+  <div class="sp-header">
+    <span class="sp-title">Mijn profiel</span>
+    <button class="sp-close" onclick="closeSettings()">✕</button>
+  </div>
+  <div class="sp-body">
+    <div class="sp-avatar-section">
+      <label class="sp-avatar-wrap" for="sp-avatar-input">
+        <div class="sp-avatar" id="sp-avatar-preview">J</div>
+        <div class="sp-avatar-edit">Foto wijzigen</div>
+      </label>
+      <input type="file" id="sp-avatar-input" accept="image/*" onchange="previewAvatar(this)" style="display:none">
+    </div>
+    <div class="sp-field">
+      <label class="sp-label">Naam</label>
+      <input class="sp-input" id="sp-name" type="text" placeholder="Jouw naam">
+    </div>
+    <div class="sp-field">
+      <label class="sp-label">Status</label>
+      <input class="sp-input" id="sp-status" type="text" placeholder="Op weg naar de finish 🏃">
+    </div>
+    <div class="sp-field">
+      <label class="sp-label">Thema</label>
+      <div class="sp-theme-row">
+        <button class="sp-theme-btn" id="btn-theme-dark" onclick="setTheme('dark')">🌙 Donker</button>
+        <button class="sp-theme-btn" id="btn-theme-light" onclick="setTheme('light')">☀️ Licht</button>
+      </div>
+    </div>
+    <button class="sp-save-btn" onclick="saveProfile()">Opslaan</button>
+    <button class="sp-logout-btn" onclick="logout()">Uitloggen</button>
+    <div id="sp-delete-confirm" style="display:none" class="sp-delete-box">
+      <p class="sp-delete-warning">⚠️ Dit verwijdert je account en alle data permanent. Dit kan niet ongedaan worden.</p>
+      <div style="display:flex;gap:0.5rem">
+        <button class="sp-delete-cancel" onclick="document.getElementById('sp-delete-confirm').style.display='none'">Annuleren</button>
+        <button class="sp-delete-confirm-btn" onclick="deleteAccount()">Ja, verwijder mijn account</button>
+      </div>
+    </div>
+    <button class="sp-delete-btn" onclick="document.getElementById('sp-delete-confirm').style.display='flex'">Account verwijderen</button>
+  </div>
+</div>
+<div id="settings-overlay" onclick="closeSettings()"></div>
 
 <div id="toast-container"></div>
 <canvas id="confetti-canvas"></canvas>

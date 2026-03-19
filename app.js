@@ -4,7 +4,15 @@ const SUPABASE_KEY = 'sb_publishable_MIkAatqn4V3R813p8RqYmQ_ZzBN3NMb';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ===== SCHEMA (exact uit PDF) =====
-const BASE_WEEKS = [null,
+const BASE_WEEKS = [
+  // Week 0 — opwarmer (19–23 maart 2026)
+  [{day:'Maandag',type:'rust',sessions:[]},
+   {day:'Dinsdag',type:'rust',sessions:[]},
+   {day:'Woensdag',type:'fietsen',sessions:[{name:'Fietsen',detail:'20–60 min rustig'}]},
+   {day:'Donderdag',type:'lopen',sessions:[{name:'Hardlopen',detail:'Rustig uitproberen'}]},
+   {day:'Vrijdag',type:'rust',sessions:[]},
+   {day:'Zaterdag',type:'rust',sessions:[]},
+   {day:'Zondag',type:'lopen',sessions:[{name:'Hardlopen',detail:'Rustig uitproberen'}]}],
   [{day:'Maandag',type:'fietsen',sessions:[{name:'Fietsen',detail:'20–60 min rustig'}]},
    {day:'Dinsdag',type:'lopen',sessions:[{name:'Hardlopen',detail:'5 km (met wandelen)'}]},
    {day:'Woensdag',type:'fietsen',sessions:[{name:'Fietsen',detail:'20–60 min rustig'}]},
@@ -99,17 +107,136 @@ function getDayDate(week, dayIndex) {
   return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
 }
 
-const PHASES = {1:'Weken 1–4',2:'Weken 1–4',3:'Weken 1–4',4:'Weken 1–4',5:'Weken 5–8',6:'Weken 5–8',7:'Weken 5–8',8:'Weken 5–8',9:'Weken 9–12',10:'Weken 9–12',11:'Weken 9–12',12:'Weken 9–12'};
+const PHASES = {0:'Opwarmer',1:'Weken 1–4',2:'Weken 1–4',3:'Weken 1–4',4:'Weken 1–4',5:'Weken 5–8',6:'Weken 5–8',7:'Weken 5–8',8:'Weken 5–8',9:'Weken 9–12',10:'Weken 9–12',11:'Weken 9–12',12:'Weken 9–12'};
 const COMP_EX = [['🔥 YES!','Weer een stap richting de finish!'],['💪 LEKKER!','Zo ga je dat, Jochem!'],['✅ GEDAAN!','Elke kilometer telt.'],['⚡ BOOM!','Rustig tempo is de sleutel!']];
 const COMP_DAY = [['🎉 DAG VOLTOOID!','Jochem pakt het helemaal af!'],['🏅 KLAAR!','Zo bouw je een halve marathon op!'],['💥 DONE!','De finish komt dichterbij!']];
 
 // ===== STATE =====
 let currentUser = null;
-let currentWeek = 1;
+let currentWeek = parseInt(localStorage.getItem('currentWeek') ?? '0') || 0;
 let dbState = {}; // { 'w1_d0': { done, km, gevoel, sessions_json } }
 let localSchedule = {}; // overridden sessions per week/day
 let authMode = 'login';
 let dragItem = null, dragSrc = null;
+let userProfile = {};
+let pendingAvatarDataUrl = null;
+
+// ===== PROFILE & THEME =====
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  const btnDark = document.getElementById('btn-theme-dark');
+  const btnLight = document.getElementById('btn-theme-light');
+  if (btnDark) btnDark.classList.toggle('active', theme === 'dark');
+  if (btnLight) btnLight.classList.toggle('active', theme === 'light');
+}
+
+async function loadProfile() {
+  if (!currentUser) return;
+  userProfile = currentUser.user_metadata || {};
+  applyTheme(userProfile.theme || localStorage.getItem('theme') || 'dark');
+  renderHeaderAvatar();
+}
+
+function renderHeaderAvatar() {
+  const btn = document.getElementById('header-avatar');
+  if (!btn) return;
+  const name = userProfile.name || currentUser?.email?.split('@')[0] || '?';
+  if (userProfile.avatar_url) {
+    btn.innerHTML = `<img src="${userProfile.avatar_url}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    btn.textContent = name[0].toUpperCase();
+  }
+}
+
+function openSettings() {
+  document.getElementById('settings-panel').classList.add('open');
+  document.getElementById('settings-overlay').classList.add('open');
+  document.getElementById('sp-name').value = userProfile.name || '';
+  document.getElementById('sp-status').value = userProfile.status || '';
+  pendingAvatarDataUrl = null;
+  renderSettingsAvatar(userProfile.avatar_url || null);
+  applyTheme(localStorage.getItem('theme') || 'dark');
+}
+
+function closeSettings() {
+  document.getElementById('settings-panel').classList.remove('open');
+  document.getElementById('settings-overlay').classList.remove('open');
+  pendingAvatarDataUrl = null;
+}
+
+function renderSettingsAvatar(src) {
+  const el = document.getElementById('sp-avatar-preview');
+  if (!el) return;
+  if (src) {
+    el.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    const name = userProfile.name || currentUser?.email?.split('@')[0] || '?';
+    el.textContent = name[0].toUpperCase();
+  }
+}
+
+function setTheme(theme) { applyTheme(theme); }
+
+function previewAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  resizeImage(file).then(dataUrl => {
+    pendingAvatarDataUrl = dataUrl;
+    renderSettingsAvatar(dataUrl);
+  });
+}
+
+function resizeImage(file) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 120; canvas.height = 120;
+      const ctx = canvas.getContext('2d');
+      const min = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, 120, 120);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.75));
+    };
+    img.src = url;
+  });
+}
+
+async function deleteAccount() {
+  const btn = document.querySelector('.sp-delete-confirm-btn');
+  btn.textContent = 'Bezig...';
+  btn.disabled = true;
+  const { error } = await sb.rpc('delete_account');
+  if (error) {
+    btn.textContent = 'Ja, verwijder mijn account';
+    btn.disabled = false;
+    toast('❌ Fout', 'Kon account niet verwijderen: ' + error.message);
+    return;
+  }
+  await sb.auth.signOut();
+}
+
+async function saveProfile() {
+  const name = document.getElementById('sp-name').value.trim();
+  const status = document.getElementById('sp-status').value.trim();
+  const btn = document.querySelector('.sp-save-btn');
+  btn.textContent = 'Opslaan...';
+  btn.disabled = true;
+  const updates = { ...userProfile, name: name || userProfile.name, status, theme: localStorage.getItem('theme') || 'dark' };
+  if (pendingAvatarDataUrl) updates.avatar_url = pendingAvatarDataUrl;
+  const { data, error } = await sb.auth.updateUser({ data: updates });
+  btn.textContent = 'Opslaan';
+  btn.disabled = false;
+  if (error) { toast('❌ Fout', 'Kon profiel niet opslaan.'); return; }
+  currentUser = data.user;
+  userProfile = data.user.user_metadata;
+  pendingAvatarDataUrl = null;
+  renderHeaderAvatar();
+  closeSettings();
+  toast('✅ Opgeslagen!', 'Je profiel is bijgewerkt.');
+}
 
 // ===== AUTH =====
 function switchTab(mode) {
@@ -207,16 +334,16 @@ function render() {
 }
 
 function renderWeekNav() {
-  document.getElementById('week-label').textContent = 'WEEK ' + currentWeek;
+  document.getElementById('week-label').textContent = currentWeek === 0 ? 'WEEK 0' : 'WEEK ' + currentWeek;
   document.getElementById('week-phase').textContent = PHASES[currentWeek];
-  document.getElementById('week-counter').textContent = currentWeek + ' / 12';
-  document.getElementById('btn-prev').disabled = currentWeek <= 1;
+  document.getElementById('week-counter').textContent = currentWeek === 0 ? '0 / 12' : currentWeek + ' / 12';
+  document.getElementById('btn-prev').disabled = currentWeek <= 0;
   document.getElementById('btn-next').disabled = currentWeek >= 12;
 }
 
 function renderProgress() {
   const week = BASE_WEEKS[currentWeek];
-  const active = week.filter(d => d.type !== 'fietsen');
+  const active = week.filter(d => d.type !== 'fietsen' && d.type !== 'rust');
   const done = active.filter((d, _) => getDs(currentWeek, week.indexOf(d)).done);
   const pct = active.length ? Math.round(done.length / active.length * 100) : 0;
   document.getElementById('prog-fill').style.width = pct + '%';
@@ -227,7 +354,7 @@ function renderOverall() {
   let total = 0, done = 0;
   for (let w = 1; w <= 12; w++) {
     BASE_WEEKS[w].forEach((d, i) => {
-      if (d.type === 'fietsen') return;
+      if (d.type === 'fietsen' || d.type === 'rust') return;
       total++;
       if (getDs(w, i).done) done++;
     });
@@ -246,7 +373,7 @@ function renderDots() {
     const row = document.createElement('div'); row.className = 'wdg-row';
     BASE_WEEKS[w].forEach((d, i) => {
       const dot = document.createElement('div'); dot.className = 'dot';
-      if (d.type === 'fietsen') dot.classList.add('idle');
+      if (d.type === 'fietsen' || d.type === 'rust') dot.classList.add('idle');
       else if (getDs(w, i).done) dot.classList.add('done');
       else if (w === currentWeek) dot.classList.add('cur');
       row.appendChild(dot);
@@ -268,11 +395,17 @@ function renderDays() {
     card.dataset.dayIdx = di;
 
     const tagClass = { lopen: 'tag-lopen', fietsen: 'tag-fietsen', race: 'tag-race' }[day.type] || '';
-    const tagLabel = { lopen: 'Hardlopen', fietsen: 'Fietsen', race: 'Race!' }[day.type] || day.type;
+    const tagLabel = { lopen: 'Hardlopen', fietsen: 'Fietsen', race: 'Race!', rust: 'Rust' }[day.type] || day.type;
 
     let bodyHTML = '';
 
-    if (day.type === 'fietsen') {
+    if (day.type === 'rust') {
+      bodyHTML = `<div class="rest-body">
+        <div class="rest-icon">😴</div>
+        <div>Rustdag</div>
+        <div style="font-size:0.7rem;margin-top:0.2rem;color:#555;">Herstel is ook training</div>
+      </div>`;
+    } else if (day.type === 'fietsen') {
       bodyHTML = `<div class="rest-body">
         <div class="rest-icon">🚴</div>
         <div>${sessions[0]?.detail || '20–60 min rustig'}</div>
@@ -348,10 +481,10 @@ function renderDays() {
 
 function renderStreak() {
   let streak = 0;
-  outer: for (let w = currentWeek; w >= 1; w--) {
+  outer: for (let w = currentWeek; w >= 0; w--) {
     const week = BASE_WEEKS[w];
     for (let i = week.length - 1; i >= 0; i--) {
-      if (week[i].type === 'fietsen') continue;
+      if (week[i].type === 'fietsen' || week[i].type === 'rust') continue;
       if (getDs(w, i).done) streak++;
       else if (streak > 0) break outer;
     }
@@ -395,8 +528,9 @@ async function saveGevoel(di, val) {
 
 function changeWeek(d) {
   const n = currentWeek + d;
-  if (n < 1 || n > 12) return;
+  if (n < 0 || n > 12) return;
   currentWeek = n;
+  localStorage.setItem('currentWeek', n);
   render();
 }
 
@@ -519,6 +653,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     await loadState();
+    await loadProfile();
     render();
     toast('👋 Hey Jochem!', 'Klaar voor je halve marathon?', 3500);
   } else {
