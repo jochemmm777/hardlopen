@@ -80,9 +80,22 @@
 
 </div>
 
+<!-- Think-about modal -->
+<div id="think-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2 class="modal-title">VOOR JE START</h2>
+    <p class="modal-sub">Waar wil je over nadenken tijdens je run?</p>
+    <textarea class="reflect-input" id="think-input" placeholder="Bijv. een beslissing, iets wat je dwars zit, of gewoon vrijlaten..." rows="4"></textarea>
+    <div class="modal-actions">
+      <button class="btn-discard" onclick="beginRun(false)">Overslaan</button>
+      <button class="btn-save" onclick="beginRun(true)">Starten</button>
+    </div>
+  </div>
+</div>
+
 <!-- Summary modal -->
 <div id="summary-modal" class="modal-overlay">
-  <div class="modal-box">
+  <div class="modal-box modal-box-scroll">
     <h2 class="modal-title">RUN KLAAR 🎉</h2>
     <div class="sum-grid">
       <div class="sum-item"><div class="sum-val" id="sum-time">--</div><div class="sum-label">Tijd</div></div>
@@ -90,7 +103,21 @@
       <div class="sum-item"><div class="sum-val" id="sum-pace">--</div><div class="sum-label">Gemiddeld tempo</div></div>
       <div class="sum-item"><div class="sum-val" id="sum-cal">--</div><div class="sum-label">Calorieën</div></div>
     </div>
-    <div class="modal-actions">
+
+    <div id="reflect-section" class="reflect-section" style="display:none">
+      <div class="reflect-divider"></div>
+      <div class="reflect-label">Je wilde nadenken over</div>
+      <div class="reflect-question" id="reflect-question"></div>
+      <div class="reflect-label" style="margin-top:1rem">Heb je er verder mee kunnen komen?</div>
+      <div class="reflect-toggle">
+        <button class="reflect-opt" id="opt-yes" onclick="setAnswered(true)">✓ Ja</button>
+        <button class="reflect-opt" id="opt-no" onclick="setAnswered(false)">✗ Nee / deels</button>
+      </div>
+      <div class="reflect-label" style="margin-top:1rem">Gedachten &amp; inzichten</div>
+      <textarea class="reflect-input" id="reflect-notes" placeholder="Wat schoot je te binnen?" rows="4"></textarea>
+    </div>
+
+    <div class="modal-actions" style="margin-top:1.25rem">
       <button class="btn-discard" onclick="discardRun()">Weggooien</button>
       <button class="btn-save" id="btn-save-run" onclick="saveRun()">Opslaan</button>
     </div>

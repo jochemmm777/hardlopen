@@ -20,6 +20,8 @@ let finalElapsedSeconds = 0;
 let timerInterval = null;
 let wakeLock = null;
 let userWeightKg = parseInt(localStorage.getItem('runnerWeight') || '70');
+let thinkAbout = '';
+let reflectAnswered = null;
 
 // ===== AUTH =====
 (async () => {
@@ -190,7 +192,18 @@ function updateStats() {
 }
 
 // ===== CONTROLS =====
-async function startRun() {
+function startRun() {
+  // Reset reflection state and show think-about modal
+  thinkAbout = '';
+  reflectAnswered = null;
+  document.getElementById('think-input').value = '';
+  document.getElementById('think-modal').classList.add('open');
+}
+
+async function beginRun(useInput) {
+  document.getElementById('think-modal').classList.remove('open');
+  if (useInput) thinkAbout = document.getElementById('think-input').value.trim();
+
   routeCoords = []; totalDistanceKm = 0; lastPoint = null;
   pausedMs = 0; pauseStartTime = null;
   if (polyline) { polyline.remove(); polyline = null; }
@@ -252,7 +265,26 @@ function showSummary() {
   document.getElementById('sum-dist').textContent = totalDistanceKm.toFixed(2) + ' km';
   document.getElementById('sum-pace').textContent = calcPace(totalDistanceKm, finalElapsedSeconds) + ' /km';
   document.getElementById('sum-cal').textContent = calcCalories(totalDistanceKm) + ' kcal';
+
+  const section = document.getElementById('reflect-section');
+  if (thinkAbout) {
+    document.getElementById('reflect-question').textContent = thinkAbout;
+    document.getElementById('reflect-notes').value = '';
+    document.getElementById('opt-yes').classList.remove('selected');
+    document.getElementById('opt-no').classList.remove('selected');
+    reflectAnswered = null;
+    section.style.display = 'block';
+  } else {
+    section.style.display = 'none';
+  }
+
   document.getElementById('summary-modal').classList.add('open');
+}
+
+function setAnswered(val) {
+  reflectAnswered = val;
+  document.getElementById('opt-yes').classList.toggle('selected', val === true);
+  document.getElementById('opt-no').classList.toggle('selected', val === false);
 }
 
 function discardRun() {
@@ -273,6 +305,9 @@ async function saveRun() {
     calories: calcCalories(totalDistanceKm),
     avg_pace: calcPace(totalDistanceKm, finalElapsedSeconds),
     route_json: JSON.stringify(routeCoords),
+    think_about: thinkAbout || null,
+    reflection_answered: thinkAbout ? reflectAnswered : null,
+    reflection_notes: document.getElementById('reflect-notes').value.trim() || null,
   });
 
   btn.textContent = 'Opslaan'; btn.disabled = false;
@@ -287,7 +322,7 @@ async function saveRun() {
 function resetState() {
   routeCoords = []; totalDistanceKm = 0; lastPoint = null;
   startTime = null; endTime = null; pausedMs = 0;
-  finalElapsedSeconds = 0;
+  finalElapsedSeconds = 0; thinkAbout = ''; reflectAnswered = null;
   updateStats();
 }
 

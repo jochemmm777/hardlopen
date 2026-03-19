@@ -773,6 +773,13 @@ html[data-theme="light"] .prog-track, html[data-theme="light"] .ov-track { backg
 .run-km { color: var(--orange); font-weight: 700; }
 .data-empty { color: var(--text2); font-size: 0.9rem; padding: 1.5rem 0; }
 
+.run-reflect { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid #2a2a26; }
+.run-reflect-q { font-size: 0.83rem; color: var(--text); font-style: italic; margin-bottom: 0.35rem; }
+.run-reflect-badge { font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.55rem; border-radius: 20px; display: inline-block; margin-bottom: 0.35rem; }
+.badge-yes { background: rgba(92,184,92,0.15); color: #5CB85C; }
+.badge-no  { background: rgba(180,180,180,0.1); color: var(--text2); }
+.run-reflect-notes { font-size: 0.8rem; color: var(--text2); line-height: 1.5; margin-top: 0.2rem; }
+
 @media (max-width: 480px) {
   .data-totals { grid-template-columns: repeat(2, 1fr); }
   .run-stats { gap: 0.6rem; font-size: 0.8rem; }

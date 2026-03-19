@@ -13,6 +13,9 @@ create table runs (
   calories int not null,
   avg_pace text,
   route_json text,
+  think_about text,
+  reflection_answered boolean,
+  reflection_notes text,
   created_at timestamptz default now()
 );
 

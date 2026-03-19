@@ -637,7 +637,7 @@ async function loadRunData() {
   runDataLoaded = true;
 
   const { data, error } = await sb.from('runs')
-    .select('started_at, distance_km, duration_seconds, calories, avg_pace')
+    .select('started_at, distance_km, duration_seconds, calories, avg_pace, think_about, reflection_answered, reflection_notes')
     .eq('user_id', currentUser.id)
     .order('started_at', { ascending: false })
     .limit(50);
@@ -685,6 +685,12 @@ async function loadRunData() {
     const date = new Date(r.started_at).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'long' });
     const time = new Date(r.started_at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
     const min = Math.floor(r.duration_seconds / 60), sec = r.duration_seconds % 60;
+    const reflectHTML = r.think_about ? `
+      <div class="run-reflect">
+        <div class="run-reflect-q">${r.think_about}</div>
+        ${r.reflection_answered !== null ? `<span class="run-reflect-badge ${r.reflection_answered ? 'badge-yes' : 'badge-no'}">${r.reflection_answered ? '✓ Antwoord gekregen' : '✗ Nog niet'}</span>` : ''}
+        ${r.reflection_notes ? `<div class="run-reflect-notes">${r.reflection_notes}</div>` : ''}
+      </div>` : '';
     return `<div class="run-item">
       <div class="run-meta">${date} · ${time}</div>
       <div class="run-stats">
@@ -693,6 +699,7 @@ async function loadRunData() {
         <span>${min}:${String(sec).padStart(2,'0')} min</span>
         <span>${r.calories} kcal</span>
       </div>
+      ${reflectHTML}
     </div>`;
   }).join('');
 }

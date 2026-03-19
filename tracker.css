@@ -153,7 +153,9 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
   border: 1px solid var(--border);
 }
 .modal-box-tall { max-height: 80vh; display: flex; flex-direction: column; }
+.modal-box-scroll { max-height: 90vh; overflow-y: auto; }
 .modal-box-sm { max-width: 320px; }
+.modal-sub { color: var(--text2); font-size: 0.85rem; margin-bottom: 0.85rem; }
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 1.25rem;
@@ -209,6 +211,29 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 .hist-stats span { color: var(--text); }
 .hist-stats span:first-child { color: var(--orange); font-weight: 700; }
 .hist-loading, .hist-empty { color: var(--text2); font-size: 0.9rem; text-align: center; padding: 2rem; }
+
+/* ===== REFLECTION ===== */
+.reflect-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+.reflect-label { font-size: 0.72rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+.reflect-question {
+  background: rgba(244,99,30,0.08); border-left: 3px solid var(--orange);
+  border-radius: 0 8px 8px 0; padding: 0.65rem 0.85rem;
+  font-size: 0.92rem; color: var(--text); line-height: 1.5;
+}
+.reflect-input {
+  width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.75rem; color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 0.9rem; resize: none;
+  line-height: 1.5; margin-top: 0.3rem;
+}
+.reflect-input:focus { outline: 2px solid var(--orange); border-color: transparent; }
+.reflect-toggle { display: flex; gap: 0.5rem; margin-top: 0.3rem; }
+.reflect-opt {
+  flex: 1; padding: 0.6rem; border-radius: 10px; border: 1px solid var(--border);
+  background: transparent; color: var(--text2); font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem; cursor: pointer; transition: all 0.15s;
+}
+.reflect-opt.selected { background: var(--orange); border-color: var(--orange); color: #fff; font-weight: 600; }
 
 /* ===== LEAFLET OVERRIDES ===== */
 .leaflet-control-attribution { font-size: 0.6rem !important; }
