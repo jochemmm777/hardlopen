@@ -92,7 +92,6 @@ let startTime = null, endTime = null, pausedMs = 0, pauseStartTime = null;
 let finalElapsedSeconds = 0;
 let timerInterval = null;
 let wakeLock = null;
-let audioCtx = null;
 let userWeightKg = parseInt(localStorage.getItem('runnerWeight') || '70');
 let thinkAbout = '';
 let reflectAnswered = null;
@@ -168,27 +167,6 @@ function stopGPS() {
 }
 
 // ===== BACKGROUND KEEPALIVE =====
-// Speelt stille audio om te voorkomen dat iOS/Android de pagina suspendt tijdens het lopen
-function startSilentAudio() {
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
-    function playLoop() {
-      if (!tracking || paused) return;
-      const src = audioCtx.createBufferSource();
-      src.buffer = buffer;
-      src.connect(audioCtx.destination);
-      src.onended = playLoop;
-      src.start();
-    }
-    playLoop();
-  } catch (e) {}
-}
-
-function stopSilentAudio() {
-  if (audioCtx) { audioCtx.close(); audioCtx = null; }
-}
-
 async function reacquireWakeLock() {
   if (tracking && !paused && (!wakeLock || wakeLock.released)) {
     try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (e) {}
@@ -362,7 +340,6 @@ async function beginRun(useInput) {
   timerInterval = setInterval(updateStats, 1000);
 
   try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (e) {}
-  startSilentAudio();
 
   document.getElementById('controls-idle').style.display = 'none';
   document.getElementById('controls-active').style.display = 'flex';
@@ -375,7 +352,6 @@ function togglePause() {
     pauseStartTime = Date.now();
     clearInterval(timerInterval);
     stopGPS();
-    stopSilentAudio();
     document.getElementById('btn-pause').textContent = 'HERVAT';
     toast('⏸ Gepauzeerd', '');
   } else {
@@ -383,7 +359,6 @@ function togglePause() {
     pausedMs += Date.now() - pauseStartTime;
     pauseStartTime = null;
     startGPS();
-    startSilentAudio();
     reacquireWakeLock();
     timerInterval = setInterval(updateStats, 1000);
     document.getElementById('btn-pause').textContent = 'PAUZE';
@@ -397,7 +372,6 @@ function stopRun() {
   tracking = false; paused = false;
   clearInterval(timerInterval);
   stopGPS();
-  stopSilentAudio();
   if (wakeLock) { wakeLock.release(); wakeLock = null; }
 
   document.getElementById('controls-idle').style.display = 'flex';
