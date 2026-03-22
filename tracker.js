@@ -96,6 +96,7 @@ let userWeightKg = parseInt(localStorage.getItem('runnerWeight') || '70');
 let thinkAbout = '';
 let reflectAnswered = null;
 let timeOnlyMode = false;
+let activityType = 'lopen'; // 'lopen' | 'fietsen'
 
 // ===== AUTH =====
 (async () => {
@@ -299,7 +300,15 @@ function calcPace(distKm, secs) {
 }
 
 function calcCalories(distKm) {
-  return Math.round(userWeightKg * distKm * 1.036);
+  const factor = activityType === 'fietsen' ? 0.5 : 1.036;
+  return Math.round(userWeightKg * distKm * factor);
+}
+
+function setActivityType(type) {
+  activityType = type;
+  document.getElementById('act-btn-lopen').classList.toggle('act-active', type === 'lopen');
+  document.getElementById('act-btn-fietsen').classList.toggle('act-active', type === 'fietsen');
+  updateStats();
 }
 
 function updateStats() {
@@ -467,6 +476,7 @@ async function saveRun() {
     calories: calcCalories(totalDistanceKm),
     avg_pace: calcPace(totalDistanceKm, finalElapsedSeconds),
     route_json: JSON.stringify(routeCoords),
+    activity_type: activityType,
   };
 
   let { error } = await sb.from('runs').insert({
@@ -506,6 +516,8 @@ function resetState() {
   lastCompletedKm = 0; kmSplitStartTime = null;
   startTime = null; endTime = null; pausedMs = 0;
   finalElapsedSeconds = 0; thinkAbout = ''; reflectAnswered = null;
+  activityType = 'lopen';
+  setActivityType('lopen');
   updateStats();
   // Re-show today-session bar
   renderTodaySession();
@@ -518,7 +530,7 @@ async function openHistory() {
   list.innerHTML = '<div class="hist-loading">Laden...</div>';
 
   const { data, error } = await sb.from('runs')
-    .select('started_at, distance_km, duration_seconds, avg_pace, calories')
+    .select('started_at, distance_km, duration_seconds, avg_pace, calories, activity_type')
     .eq('user_id', currentUser.id)
     .order('started_at', { ascending: false })
     .limit(30);
@@ -531,8 +543,10 @@ async function openHistory() {
   list.innerHTML = data.map(run => {
     const date = new Date(run.started_at).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
     const time = new Date(run.started_at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+    const actIcon = run.activity_type === 'fietsen' ? '🚴' : '🏃';
+    const actLabel = run.activity_type === 'fietsen' ? 'Fietsen' : 'Hardlopen';
     return `<div class="hist-item">
-      <div class="hist-date">${date} · ${time}</div>
+      <div class="hist-date">${actIcon} ${actLabel} · ${date} · ${time}</div>
       <div class="hist-stats">
         <span>${run.distance_km.toFixed(2)} km</span>
         <span>${fmt(run.duration_seconds)}</span>
@@ -660,6 +674,7 @@ async function saveManualLog() {
   const m = parseInt(document.getElementById('ml-dur-m').value) || 0;
   const s = parseInt(document.getElementById('ml-dur-s').value) || 0;
   const durSecs = h * 3600 + m * 60 + s;
+  const manualActivity = document.getElementById('ml-activity').value || 'lopen';
 
   if (!dateVal) { toast('⚠️ Datum', 'Vul een datum in.'); return; }
   if (!dist || dist <= 0) { toast('⚠️ Afstand', 'Vul een geldige afstand in.'); return; }
@@ -671,15 +686,17 @@ async function saveManualLog() {
   const btn = document.querySelector('#manual-log-modal .btn-save');
   btn.disabled = true; btn.textContent = 'Opslaan...';
 
+  const calFactor = manualActivity === 'fietsen' ? 0.5 : 1.036;
   const baseData = {
     user_id: currentUser.id,
     started_at: startedAt.toISOString(),
     ended_at: endedAt.toISOString(),
     distance_km: Math.round(dist * 100) / 100,
     duration_seconds: durSecs,
-    calories: Math.round(userWeightKg * dist * 1.036),
+    calories: Math.round(userWeightKg * dist * calFactor),
     avg_pace: calcPace(dist, durSecs),
     route_json: JSON.stringify([]),
+    activity_type: manualActivity,
   };
 
   let { error } = await sb.from('runs').insert({

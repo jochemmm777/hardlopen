@@ -315,6 +315,34 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 .ts-type { color: var(--orange); font-weight: 600; }
 .ts-detail { color: var(--text); }
 
+/* ===== ACTIVITY SELECTOR ===== */
+.activity-selector {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+.act-btn {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 0.55rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.act-btn.act-active {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  font-weight: 600;
+}
+.act-btn:not(.act-active):hover { border-color: var(--orange); color: var(--orange); }
+
 /* ===== MANUAL LOG BUTTON ===== */
 .btn-manual-log {
   background: none;

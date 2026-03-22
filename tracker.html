@@ -89,6 +89,11 @@
       </div>
     </div>
 
+    <div class="activity-selector">
+      <button class="act-btn act-active" id="act-btn-lopen" onclick="setActivityType('lopen')">🏃 Hardlopen</button>
+      <button class="act-btn" id="act-btn-fietsen" onclick="setActivityType('fietsen')">🚴 Fietsen</button>
+    </div>
+
     <div class="controls" id="controls-idle">
       <button class="btn-weight" onclick="openWeightModal()" id="weight-display">⚖️ <span id="weight-val">70</span> kg</button>
       <button class="btn-start" onclick="startRun()">START</button>
@@ -157,7 +162,7 @@
 <div id="history-modal" class="modal-overlay">
   <div class="modal-box modal-box-tall">
     <div class="modal-header">
-      <h2 class="modal-title" style="margin:0">Loopgeschiedenis</h2>
+      <h2 class="modal-title" style="margin:0">Geschiedenis</h2>
       <button class="modal-close" onclick="closeHistory()">✕</button>
     </div>
     <div id="history-list" class="history-list"></div>
@@ -167,8 +172,13 @@
 <!-- Manual log modal -->
 <div id="manual-log-modal" class="modal-overlay">
   <div class="modal-box modal-box-scroll">
-    <h2 class="modal-title">RUN INVOEREN</h2>
-    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:1rem">Vul je vergeten run in.</p>
+    <h2 class="modal-title">ACTIVITEIT INVOEREN</h2>
+    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:1rem">Vul je vergeten activiteit in.</p>
+    <label class="manual-log-label">Activiteit</label>
+    <select class="auth-input" id="ml-activity" style="appearance:auto">
+      <option value="lopen">🏃 Hardlopen</option>
+      <option value="fietsen">🚴 Fietsen</option>
+    </select>
     <label class="manual-log-label">Datum</label>
     <input class="auth-input" type="date" id="ml-date">
     <label class="manual-log-label">Starttijd (optioneel)</label>

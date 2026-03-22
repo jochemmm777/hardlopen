@@ -13,6 +13,7 @@ create table runs (
   calories int not null,
   avg_pace text,
   route_json text,
+  activity_type text not null default 'lopen',
   think_about text,
   reflection_answered boolean,
   reflection_notes text,
@@ -44,6 +45,13 @@ create table progress (
 );
 
 alter table progress enable row level security;
+
+-- =============================================
+-- MIGRATIES (voor bestaande databases)
+-- =============================================
+
+-- Voeg activity_type toe aan bestaande runs tabel:
+-- alter table runs add column if not exists activity_type text not null default 'lopen';
 
 create policy "Users can manage own progress"
 on progress for all
