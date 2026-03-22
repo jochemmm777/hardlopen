@@ -618,6 +618,75 @@ ${trkpts}
   URL.revokeObjectURL(url);
 }
 
+// ===== MANUAL LOG =====
+function openManualLog() {
+  // Standaard op vandaag
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('ml-date').value = `${yyyy}-${mm}-${dd}`;
+  document.getElementById('ml-time').value = '09:00';
+  document.getElementById('ml-dist').value = '';
+  document.getElementById('ml-dur-h').value = '';
+  document.getElementById('ml-dur-m').value = '';
+  document.getElementById('ml-dur-s').value = '';
+  document.getElementById('manual-log-modal').classList.add('open');
+}
+
+function closeManualLog() {
+  document.getElementById('manual-log-modal').classList.remove('open');
+}
+
+async function saveManualLog() {
+  const dateVal = document.getElementById('ml-date').value;
+  const timeVal = document.getElementById('ml-time').value || '00:00';
+  const dist = parseFloat(document.getElementById('ml-dist').value);
+  const h = parseInt(document.getElementById('ml-dur-h').value) || 0;
+  const m = parseInt(document.getElementById('ml-dur-m').value) || 0;
+  const s = parseInt(document.getElementById('ml-dur-s').value) || 0;
+  const durSecs = h * 3600 + m * 60 + s;
+
+  if (!dateVal) { toast('⚠️ Datum', 'Vul een datum in.'); return; }
+  if (!dist || dist <= 0) { toast('⚠️ Afstand', 'Vul een geldige afstand in.'); return; }
+  if (durSecs <= 0) { toast('⚠️ Duur', 'Vul een geldige duur in.'); return; }
+
+  const startedAt = new Date(`${dateVal}T${timeVal}:00`);
+  const endedAt = new Date(startedAt.getTime() + durSecs * 1000);
+
+  const btn = document.querySelector('#manual-log-modal .btn-save');
+  btn.disabled = true; btn.textContent = 'Opslaan...';
+
+  const baseData = {
+    user_id: currentUser.id,
+    started_at: startedAt.toISOString(),
+    ended_at: endedAt.toISOString(),
+    distance_km: Math.round(dist * 100) / 100,
+    duration_seconds: durSecs,
+    calories: Math.round(userWeightKg * dist * 1.036),
+    avg_pace: calcPace(dist, durSecs),
+    route_json: JSON.stringify([]),
+  };
+
+  let { error } = await sb.from('runs').insert({
+    ...baseData,
+    think_about: null,
+    reflection_answered: null,
+    reflection_notes: null,
+  });
+  if (error && error.message?.includes('column')) {
+    ({ error } = await sb.from('runs').insert(baseData));
+  }
+
+  btn.disabled = false; btn.textContent = 'Opslaan';
+
+  if (error) { toast('❌ Fout', error.message); return; }
+
+  closeManualLog();
+  const pace = calcPace(dist, durSecs);
+  toast('✅ Opgeslagen!', `${dist} km · ${fmt(durSecs)} · ${pace} /km`);
+}
+
 // Init weight display
 document.getElementById('weight-val').textContent = userWeightKg;
 

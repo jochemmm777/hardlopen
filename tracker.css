@@ -315,6 +315,26 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 .ts-type { color: var(--orange); font-weight: 600; }
 .ts-detail { color: var(--text); }
 
+/* ===== MANUAL LOG BUTTON ===== */
+.btn-manual-log {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0.25rem 0;
+}
+.btn-manual-log:hover { color: var(--orange); }
+
+.manual-log-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text2);
+  margin: 0.75rem 0 0.25rem;
+}
+
 /* ===== GPX BUTTON ===== */
 .btn-gpx {
   background: none;

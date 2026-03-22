@@ -93,6 +93,9 @@
       <button class="btn-weight" onclick="openWeightModal()" id="weight-display">⚖️ <span id="weight-val">70</span> kg</button>
       <button class="btn-start" onclick="startRun()">START</button>
     </div>
+    <div style="text-align:center;margin-top:0.5rem">
+      <button class="btn-manual-log" onclick="openManualLog()">+ Vergeten run invoeren</button>
+    </div>
 
     <div class="controls" id="controls-active" style="display:none">
       <button class="btn-pause" id="btn-pause" onclick="togglePause()">PAUZE</button>
@@ -157,6 +160,30 @@
       <button class="modal-close" onclick="closeHistory()">✕</button>
     </div>
     <div id="history-list" class="history-list"></div>
+  </div>
+</div>
+
+<!-- Manual log modal -->
+<div id="manual-log-modal" class="modal-overlay">
+  <div class="modal-box modal-box-scroll">
+    <h2 class="modal-title">RUN INVOEREN</h2>
+    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:1rem">Vul je vergeten run in.</p>
+    <label class="manual-log-label">Datum</label>
+    <input class="auth-input" type="date" id="ml-date">
+    <label class="manual-log-label">Starttijd (optioneel)</label>
+    <input class="auth-input" type="time" id="ml-time" value="09:00">
+    <label class="manual-log-label">Afstand (km)</label>
+    <input class="auth-input" type="number" id="ml-dist" min="0" max="100" step="0.01" placeholder="bijv. 5.2">
+    <label class="manual-log-label">Duur</label>
+    <div style="display:flex;gap:0.5rem">
+      <input class="auth-input" type="number" id="ml-dur-h" min="0" max="23" placeholder="uur" style="flex:1">
+      <input class="auth-input" type="number" id="ml-dur-m" min="0" max="59" placeholder="min" style="flex:1">
+      <input class="auth-input" type="number" id="ml-dur-s" min="0" max="59" placeholder="sec" style="flex:1">
+    </div>
+    <div class="modal-actions" style="margin-top:1.25rem">
+      <button class="btn-discard" onclick="closeManualLog()">Annuleren</button>
+      <button class="btn-save" onclick="saveManualLog()">Opslaan</button>
+    </div>
   </div>
 </div>
 
