@@ -160,6 +160,19 @@
   </div>
 </div>
 
+<!-- Manual distance modal -->
+<div id="manual-dist-modal" class="modal-overlay">
+  <div class="modal-box modal-box-sm">
+    <h2 class="modal-title">AFSTAND INVOEREN</h2>
+    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:1rem">Hoeveel km heb je gelopen?</p>
+    <input class="auth-input" type="number" id="manual-dist-input" min="0" max="100" step="0.01" placeholder="bijv. 5.2">
+    <div class="modal-actions">
+      <button class="btn-discard" onclick="discardManualRun()">Weggooien</button>
+      <button class="btn-save" onclick="confirmManualDistance()">Berekenen</button>
+    </div>
+  </div>
+</div>
+
 <!-- Weight modal -->
 <div id="weight-modal" class="modal-overlay">
   <div class="modal-box modal-box-sm">

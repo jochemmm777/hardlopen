@@ -304,9 +304,16 @@ function calcCalories(distKm) {
 function updateStats() {
   const e = elapsed();
   document.getElementById('stat-time').textContent = fmt(e);
-  document.getElementById('stat-dist').textContent = totalDistanceKm.toFixed(2);
-  document.getElementById('stat-pace').textContent = calcPace(totalDistanceKm, e);
-  document.getElementById('stat-cal').textContent = calcCalories(totalDistanceKm);
+  // Tijdens tracking: afstand nog onbekend (handmatig in te vullen na stop)
+  if (tracking && totalDistanceKm === 0) {
+    document.getElementById('stat-dist').textContent = '--';
+    document.getElementById('stat-pace').textContent = '--:--';
+    document.getElementById('stat-cal').textContent = '--';
+  } else {
+    document.getElementById('stat-dist').textContent = totalDistanceKm.toFixed(2);
+    document.getElementById('stat-pace').textContent = calcPace(totalDistanceKm, e);
+    document.getElementById('stat-cal').textContent = calcCalories(totalDistanceKm);
+  }
 }
 
 // ===== CONTROLS =====
@@ -333,7 +340,9 @@ async function beginRun(useInput) {
   const tsBar = document.getElementById('today-session-bar');
   if (tsBar) tsBar.style.display = 'none';
 
-  if (!startGPS()) return;
+  // GPS tijdelijk uitgeschakeld — alleen tijd bijhouden
+  const gpsEl = document.getElementById('gps-acc');
+  if (gpsEl) { gpsEl.textContent = 'GPS uit (handmatig)'; gpsEl.className = 'gps-acc gps-ok'; }
 
   tracking = true; paused = false;
   startTime = Date.now();
@@ -343,7 +352,7 @@ async function beginRun(useInput) {
 
   document.getElementById('controls-idle').style.display = 'none';
   document.getElementById('controls-active').style.display = 'flex';
-  toast('🏃 Gestart!', 'GPS vergrendelt...');
+  toast('🏃 Gestart!', 'Tijd loopt...');
 }
 
 function togglePause() {
@@ -377,11 +386,24 @@ function stopRun() {
   document.getElementById('controls-idle').style.display = 'flex';
   document.getElementById('controls-active').style.display = 'none';
 
-  if (totalDistanceKm < 0.05) {
-    toast('⚠️ Te kort', 'Run te kort om op te slaan.');
-    resetState();
+  // Toon km-invoer modal
+  document.getElementById('manual-dist-input').value = '';
+  document.getElementById('manual-dist-modal').classList.add('open');
+}
+
+function discardManualRun() {
+  document.getElementById('manual-dist-modal').classList.remove('open');
+  resetState();
+}
+
+function confirmManualDistance() {
+  const val = parseFloat(document.getElementById('manual-dist-input').value);
+  if (!val || val <= 0) {
+    toast('⚠️ Ongeldige afstand', 'Vul een getal in, bijv. 5.2');
     return;
   }
+  totalDistanceKm = val;
+  document.getElementById('manual-dist-modal').classList.remove('open');
   showSummary();
 }
 
