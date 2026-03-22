@@ -93,8 +93,9 @@
       <button class="btn-weight" onclick="openWeightModal()" id="weight-display">⚖️ <span id="weight-val">70</span> kg</button>
       <button class="btn-start" onclick="startRun()">START</button>
     </div>
-    <div style="text-align:center;margin-top:0.5rem">
+    <div style="text-align:center;margin-top:0.5rem;display:flex;justify-content:center;gap:1rem;flex-wrap:wrap">
       <button class="btn-manual-log" onclick="openManualLog()">+ Vergeten run invoeren</button>
+      <button class="btn-manual-log" id="btn-timeonly" onclick="toggleTimeOnlyMode()">⏱ Tijdmodus UIT</button>
     </div>
 
     <div class="controls" id="controls-active" style="display:none">

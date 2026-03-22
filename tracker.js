@@ -95,6 +95,7 @@ let wakeLock = null;
 let userWeightKg = parseInt(localStorage.getItem('runnerWeight') || '70');
 let thinkAbout = '';
 let reflectAnswered = null;
+let timeOnlyMode = false;
 
 // ===== AUTH =====
 (async () => {
@@ -304,8 +305,8 @@ function calcCalories(distKm) {
 function updateStats() {
   const e = elapsed();
   document.getElementById('stat-time').textContent = fmt(e);
-  // Tijdens tracking: afstand nog onbekend (handmatig in te vullen na stop)
-  if (tracking && totalDistanceKm === 0) {
+  // In tijdmodus: afstand nog onbekend (handmatig in te vullen na stop)
+  if (tracking && timeOnlyMode && totalDistanceKm === 0) {
     document.getElementById('stat-dist').textContent = '--';
     document.getElementById('stat-pace').textContent = '--:--';
     document.getElementById('stat-cal').textContent = '--';
@@ -340,9 +341,13 @@ async function beginRun(useInput) {
   const tsBar = document.getElementById('today-session-bar');
   if (tsBar) tsBar.style.display = 'none';
 
-  // GPS tijdelijk uitgeschakeld — alleen tijd bijhouden
   const gpsEl = document.getElementById('gps-acc');
-  if (gpsEl) { gpsEl.textContent = 'GPS uit (handmatig)'; gpsEl.className = 'gps-acc gps-ok'; }
+  if (timeOnlyMode) {
+    if (gpsEl) { gpsEl.textContent = 'GPS uit (tijdmodus)'; gpsEl.className = 'gps-acc gps-ok'; }
+  } else {
+    if (!startGPS()) return;
+    if (gpsEl) { gpsEl.textContent = 'GPS zoeken...'; gpsEl.className = 'gps-acc gps-bad'; }
+  }
 
   tracking = true; paused = false;
   startTime = Date.now();
@@ -352,7 +357,7 @@ async function beginRun(useInput) {
 
   document.getElementById('controls-idle').style.display = 'none';
   document.getElementById('controls-active').style.display = 'flex';
-  toast('🏃 Gestart!', 'Tijd loopt...');
+  toast('🏃 Gestart!', timeOnlyMode ? 'Tijd loopt (geen GPS)...' : 'GPS vergrendelt...');
 }
 
 function togglePause() {
@@ -386,9 +391,18 @@ function stopRun() {
   document.getElementById('controls-idle').style.display = 'flex';
   document.getElementById('controls-active').style.display = 'none';
 
-  // Toon km-invoer modal
-  document.getElementById('manual-dist-input').value = '';
-  document.getElementById('manual-dist-modal').classList.add('open');
+  if (timeOnlyMode) {
+    // Toon km-invoer modal
+    document.getElementById('manual-dist-input').value = '';
+    document.getElementById('manual-dist-modal').classList.add('open');
+  } else {
+    if (totalDistanceKm < 0.05) {
+      toast('⚠️ Te kort', 'Run te kort om op te slaan.');
+      resetState();
+      return;
+    }
+    showSummary();
+  }
 }
 
 function discardManualRun() {
@@ -685,6 +699,16 @@ async function saveManualLog() {
   closeManualLog();
   const pace = calcPace(dist, durSecs);
   toast('✅ Opgeslagen!', `${dist} km · ${fmt(durSecs)} · ${pace} /km`);
+}
+
+// ===== TIME-ONLY MODE TOGGLE =====
+function toggleTimeOnlyMode() {
+  timeOnlyMode = !timeOnlyMode;
+  const btn = document.getElementById('btn-timeonly');
+  if (btn) {
+    btn.textContent = timeOnlyMode ? '⏱ Tijdmodus AAN' : '⏱ Tijdmodus UIT';
+    btn.classList.toggle('timeonly-active', timeOnlyMode);
+  }
 }
 
 // Init weight display

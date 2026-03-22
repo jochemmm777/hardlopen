@@ -327,6 +327,7 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
   padding: 0.25rem 0;
 }
 .btn-manual-log:hover { color: var(--orange); }
+.btn-manual-log.timeonly-active { color: var(--orange); font-weight: 600; }
 
 .manual-log-label {
   display: block;
