@@ -422,7 +422,7 @@ async function saveRun() {
   const btn = document.getElementById('btn-save-run');
   btn.textContent = 'Opslaan...'; btn.disabled = true;
 
-  const { error } = await sb.from('runs').insert({
+  const baseData = {
     user_id: currentUser.id,
     started_at: new Date(startTime).toISOString(),
     ended_at: new Date(endTime).toISOString(),
@@ -431,10 +431,19 @@ async function saveRun() {
     calories: calcCalories(totalDistanceKm),
     avg_pace: calcPace(totalDistanceKm, finalElapsedSeconds),
     route_json: JSON.stringify(routeCoords),
+  };
+
+  let { error } = await sb.from('runs').insert({
+    ...baseData,
     think_about: thinkAbout || null,
     reflection_answered: thinkAbout ? reflectAnswered : null,
     reflection_notes: document.getElementById('reflect-notes').value.trim() || null,
   });
+
+  // Kolommen bestaan nog niet in DB: sla op zonder reflectie-velden
+  if (error && error.message?.includes('column')) {
+    ({ error } = await sb.from('runs').insert(baseData));
+  }
 
   btn.textContent = 'Opslaan'; btn.disabled = false;
 
