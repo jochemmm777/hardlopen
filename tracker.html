@@ -98,9 +98,10 @@
       <button class="btn-weight" onclick="openWeightModal()" id="weight-display">⚖️ <span id="weight-val">70</span> kg</button>
       <button class="btn-start" onclick="startRun()">START</button>
     </div>
-    <div style="text-align:center;margin-top:0.5rem;display:flex;justify-content:center;gap:1rem;flex-wrap:wrap">
+    <div style="text-align:center;margin-top:0.5rem;display:flex;justify-content:center;gap:0.6rem;flex-wrap:wrap">
       <button class="btn-manual-log" onclick="openManualLog()">+ Vergeten run invoeren</button>
       <button class="btn-manual-log" id="btn-timeonly" onclick="toggleTimeOnlyMode()">⏱ Tijdmodus UIT</button>
+      <button class="btn-manual-log" id="btn-pace-alert" onclick="openPaceAlertModal()">🔕 Piepjes UIT</button>
     </div>
 
     <div class="controls" id="controls-active" style="display:none">
@@ -223,6 +224,33 @@
     </div>
   </div>
 </div>
+
+<!-- Pace alert modal -->
+<div id="pace-alert-modal" class="modal-overlay">
+  <div class="modal-box modal-box-scroll">
+    <h2 class="modal-title">TEMPO-PIEPJES</h2>
+    <p style="color:var(--text2);font-size:0.85rem;margin-bottom:1rem">Krijg een piepje als je tempo te snel of te langzaam is. Spotify blijft gewoon spelen!</p>
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem">
+      <label style="font-size:0.85rem;color:var(--text2)">Piepjes inschakelen</label>
+      <input type="checkbox" id="pa-enabled" style="width:1.2rem;height:1.2rem;cursor:pointer">
+    </div>
+    <label class="manual-log-label">Doeltempo (min:sec per km)</label>
+    <div style="display:flex;gap:0.5rem;align-items:center">
+      <input class="auth-input" type="number" id="pa-target-min" min="3" max="15" placeholder="min" style="flex:1">
+      <span style="color:var(--text2)">:</span>
+      <input class="auth-input" type="number" id="pa-target-sec" min="0" max="59" placeholder="sec" style="flex:1">
+      <span style="color:var(--text2);font-size:0.8rem">/km</span>
+    </div>
+    <label class="manual-log-label">Tolerantie (sec/km afwijking toegestaan)</label>
+    <input class="auth-input" type="number" id="pa-tolerance" min="5" max="120" placeholder="bijv. 30">
+    <p style="color:var(--muted);font-size:0.75rem;margin-top:0.5rem">Bij ±<span id="pa-tol-preview">30</span>s afwijking hoor je een piepje: hoog = te snel, laag = te langzaam.</p>
+    <div class="modal-actions" style="margin-top:1.25rem">
+      <button class="btn-discard" onclick="closePaceAlertModal()">Annuleren</button>
+      <button class="btn-save" onclick="savePaceAlerts()">Opslaan</button>
+    </div>
+  </div>
+</div>
+<div id="pace-alert-overlay" class="modal-overlay" onclick="closePaceAlertModal()" style="background:rgba(0,0,0,0.6);z-index:999"></div>
 
 <div id="toast-container"></div>
 

@@ -106,12 +106,12 @@
     </div>
 
     <div class="week-nav">
-      <button class="wn-btn" id="btn-prev" onclick="changeWeek(-1)">←</button>
+      <button class="wn-btn" id="btn-prev" onclick="changeWeek(-1)">&#8592;</button>
       <span class="week-label" id="week-label">WEEK 1</span>
       <span class="week-phase" id="week-phase"></span>
-      <div style="flex:1"></div>
+      <button class="wn-btn wn-today-btn" onclick="goToCurrentWeek()" title="Naar huidige week">Nu</button>
       <span class="wn-counter" id="week-counter">1 / 12</span>
-      <button class="wn-btn" id="btn-next" onclick="changeWeek(1)">→</button>
+      <button class="wn-btn" id="btn-next" onclick="changeWeek(1)">&#8594;</button>
     </div>
 
     <div class="progress-area">
@@ -271,6 +271,13 @@
     </div>
   </div>
 
+  <!-- DAGBOEK PAGE -->
+  <div id="page-dagboek" style="display:none">
+    <div class="dagboek-page" id="dagboek-content">
+      <div class="reflect-empty">Laden...</div>
+    </div>
+  </div>
+
   <!-- DATA PAGE -->
   <div id="page-data" style="display:none">
     <div class="data-page">
@@ -325,6 +332,10 @@
   <div class="nm-item" id="nm-reflecties" onclick="showPage('reflecties'); closeMenu()">
     <span class="nm-icon">💭</span>
     <div><div class="nm-label">Reflecties</div><div class="nm-sub">Gedachten na je runs</div></div>
+  </div>
+  <div class="nm-item" id="nm-dagboek" onclick="showPage('dagboek'); closeMenu()">
+    <span class="nm-icon">📓</span>
+    <div><div class="nm-label">Dagboek</div><div class="nm-sub">Wat je leerde of bedacht die dag</div></div>
   </div>
 </div>
 <div id="nav-overlay" class="nav-overlay" onclick="closeMenu()"></div>
@@ -393,6 +404,41 @@
     </div>
   </div>
 </div>
+
+<!-- DAGBOEK MODAL -->
+<div id="dagboek-modal" class="dagboek-modal-overlay">
+  <div class="dagboek-modal-box">
+    <div class="dagboek-modal-header">
+      <span id="dagboek-modal-title">Nieuwe entry</span>
+      <button class="modal-close" onclick="closeDagboekEditor()">✕</button>
+    </div>
+    <div class="dagboek-modal-body">
+      <input type="hidden" id="dagboek-entry-id">
+      <label class="dagboek-label">Datum</label>
+      <input class="dagboek-input" type="date" id="dagboek-entry-date">
+      <label class="dagboek-label">Titel (optioneel)</label>
+      <input class="dagboek-input" type="text" id="dagboek-entry-title" placeholder="Bijv. Eerste 5km zonder pauze!">
+      <label class="dagboek-label">Hoe was je dag / run?</label>
+      <div class="dagboek-mood-row">
+        <label class="dagboek-mood-opt"><input type="radio" name="dagboek-mood" value="geweldig"> 🔥 Geweldig</label>
+        <label class="dagboek-mood-opt"><input type="radio" name="dagboek-mood" value="goed"> 😊 Goed</label>
+        <label class="dagboek-mood-opt"><input type="radio" name="dagboek-mood" value="neutraal" checked> 😐 Neutraal</label>
+        <label class="dagboek-mood-opt"><input type="radio" name="dagboek-mood" value="zwaar"> 😓 Zwaar</label>
+      </div>
+      <input type="hidden" id="dagboek-entry-mood" value="neutraal">
+      <label class="dagboek-label">Wat heb je geleerd of bedacht?</label>
+      <textarea class="dagboek-textarea" id="dagboek-entry-content" placeholder="Schrijf hier je gedachten, inzichten, wat goed ging, wat beter kan..." rows="7"></textarea>
+      <div class="dagboek-modal-actions">
+        <button class="dagboek-delete-btn" id="dagboek-delete-btn" onclick="deleteDagboekEntry()" style="display:none">🗑️ Verwijderen</button>
+        <div style="display:flex;gap:0.5rem">
+          <button class="dagboek-cancel-btn" onclick="closeDagboekEditor()">Annuleren</button>
+          <button class="dagboek-save-btn" id="dagboek-save-btn" onclick="saveDagboekEntry()">Opslaan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="dagboek-modal-overlay" class="dagboek-modal-bg" onclick="closeDagboekEditor()"></div>
 
 <div id="toast-container"></div>
 <canvas id="confetti-canvas"></canvas>

@@ -67,8 +67,16 @@ const TRACKER_WEEKS = [
 ];
 
 function getTodaySession() {
-  const week = Math.min(Math.floor((Date.now() - new Date(2026, 2, 19)) / 604800000), 12);
-  if (week < 0) return null;
+  const startW1 = new Date(2026, 2, 24); startW1.setHours(0,0,0,0);
+  const startW0 = new Date(2026, 2, 19); startW0.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  let week;
+  if (today < startW0) return null;
+  if (today < startW1) {
+    week = 0;
+  } else {
+    week = Math.min(Math.floor((today - startW1) / 604800000) + 1, 12);
+  }
   const dayIdx = (new Date().getDay() + 6) % 7; // Monday=0
   const entry = TRACKER_WEEKS[week]?.[dayIdx];
   if (!entry || (entry.t !== 'lopen' && entry.t !== 'race')) return null;
@@ -253,6 +261,9 @@ function onPosition(pos) {
   }
   const colorIdx = getPaceColorIdx(smoothedPaceSecPerKm);
   const color = PACE_COLORS[colorIdx];
+
+  // Pace alert check
+  checkPaceAlert(smoothedPaceSecPerKm);
 
   lastPoint = { lat, lng, time: now };
   routeCoords.push([lat, lng, colorIdx]);
@@ -728,13 +739,110 @@ function toggleTimeOnlyMode() {
   }
 }
 
+// ===== PACE ALERTS =====
+let paceAlertEnabled = false;
+let targetPaceSecPerKm = 390; // default 6:30/km
+let paceAlertTolerance = 30; // ±30 sec/km
+let lastPaceAlertTime = 0;
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playBeep(freq, duration, volume = 0.4) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+
+function checkPaceAlert(smoothedPaceSecPerKm) {
+  if (!paceAlertEnabled || !tracking || paused) return;
+  if (smoothedPaceSecPerKm >= 900) return; // geen betrouwbare pace
+  const now = Date.now();
+  if (now - lastPaceAlertTime < 15000) return; // max 1x per 15 sec
+
+  const diff = smoothedPaceSecPerKm - targetPaceSecPerKm;
+  if (diff > paceAlertTolerance) {
+    // Te langzaam: laag piepje (2x)
+    playBeep(330, 0.4);
+    setTimeout(() => playBeep(330, 0.4), 500);
+    lastPaceAlertTime = now;
+    toast('🐢 Te langzaam', `Tempo: ${Math.floor(smoothedPaceSecPerKm/60)}:${pad(Math.round(smoothedPaceSecPerKm%60))} — doel ${Math.floor(targetPaceSecPerKm/60)}:${pad(Math.round(targetPaceSecPerKm%60))} /km`, 2500);
+  } else if (diff < -paceAlertTolerance) {
+    // Te snel: hoog piepje (3x)
+    playBeep(880, 0.3);
+    setTimeout(() => playBeep(880, 0.3), 350);
+    setTimeout(() => playBeep(880, 0.3), 700);
+    lastPaceAlertTime = now;
+    toast('⚡ Te snel!', `Tempo: ${Math.floor(smoothedPaceSecPerKm/60)}:${pad(Math.round(smoothedPaceSecPerKm%60))} — doe wat rustiger`, 2500);
+  }
+}
+
+function openPaceAlertModal() {
+  const modal = document.getElementById('pace-alert-modal');
+  if (!modal) return;
+  document.getElementById('pa-target-min').value = Math.floor(targetPaceSecPerKm / 60);
+  document.getElementById('pa-target-sec').value = Math.round(targetPaceSecPerKm % 60);
+  document.getElementById('pa-tolerance').value = paceAlertTolerance;
+  document.getElementById('pa-enabled').checked = paceAlertEnabled;
+  modal.classList.add('open');
+  document.getElementById('pace-alert-overlay').classList.add('open');
+}
+
+function closePaceAlertModal() {
+  document.getElementById('pace-alert-modal').classList.remove('open');
+  document.getElementById('pace-alert-overlay').classList.remove('open');
+}
+
+function savePaceAlerts() {
+  const min = parseInt(document.getElementById('pa-target-min').value) || 6;
+  const sec = parseInt(document.getElementById('pa-target-sec').value) || 30;
+  paceAlertTolerance = parseInt(document.getElementById('pa-tolerance').value) || 30;
+  paceAlertEnabled = document.getElementById('pa-enabled').checked;
+  targetPaceSecPerKm = min * 60 + sec;
+  localStorage.setItem('paceAlertEnabled', paceAlertEnabled ? '1' : '0');
+  localStorage.setItem('paceAlertTargetSec', targetPaceSecPerKm);
+  localStorage.setItem('paceAlertTolerance', paceAlertTolerance);
+  closePaceAlertModal();
+  updatePaceAlertBtn();
+  toast('✅ Instellingen opgeslagen', paceAlertEnabled ? `Piepjes aan — doel: ${min}:${pad(sec)} /km` : 'Piepjes uitgeschakeld');
+}
+
+function updatePaceAlertBtn() {
+  const btn = document.getElementById('btn-pace-alert');
+  if (!btn) return;
+  btn.textContent = paceAlertEnabled ? '🔔 Piepjes AAN' : '🔕 Piepjes UIT';
+  btn.classList.toggle('pace-alert-active', paceAlertEnabled);
+}
+
+// Laad opgeslagen waarden
+paceAlertEnabled = localStorage.getItem('paceAlertEnabled') === '1';
+targetPaceSecPerKm = parseInt(localStorage.getItem('paceAlertTargetSec') || '390');
+paceAlertTolerance = parseInt(localStorage.getItem('paceAlertTolerance') || '30');
+
 // Init weight display
 document.getElementById('weight-val').textContent = userWeightKg;
 
 // Init today-session bar on load
-document.addEventListener('DOMContentLoaded', renderTodaySession);
+document.addEventListener('DOMContentLoaded', () => {
+  renderTodaySession();
+  updatePaceAlertBtn();
+});
 // Also call directly in case DOM is already ready
 renderTodaySession();
+updatePaceAlertBtn();
 
 // ===== TOAST =====
 function toast(title, msg, dur = 3000) {

@@ -100,16 +100,30 @@ const BASE_WEEKS = [
 ];
 
 const START_DATE = new Date(2026, 2, 24); // 24 maart 2026 = week 1 maandag
+const WEEK0_START = new Date(2026, 2, 19); // 19 maart 2026 = week 0 maandag
+
+function getActualCurrentWeek() {
+  const startW1 = new Date(2026, 2, 24); startW1.setHours(0,0,0,0);
+  const startW0 = new Date(2026, 2, 19); startW0.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (today < startW0) return 0;
+  if (today < startW1) return 0; // week 0 periode
+  return Math.min(Math.floor((today - startW1) / 604800000) + 1, 12);
+}
 
 function getDayDate(week, dayIndex) {
-  const d = new Date(START_DATE);
-  d.setDate(d.getDate() + (week - 1) * 7 + dayIndex);
+  const base = week === 0 ? new Date(WEEK0_START) : new Date(START_DATE);
+  const d = new Date(base);
+  if (week === 0) d.setDate(d.getDate() + dayIndex);
+  else d.setDate(d.getDate() + (week - 1) * 7 + dayIndex);
   return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
 }
 
 function getSmartDate(week, dayIndex) {
-  const d = new Date(START_DATE);
-  d.setDate(d.getDate() + (week - 1) * 7 + dayIndex);
+  const base = week === 0 ? new Date(WEEK0_START) : new Date(START_DATE);
+  const d = new Date(base);
+  if (week === 0) d.setDate(d.getDate() + dayIndex);
+  else d.setDate(d.getDate() + (week - 1) * 7 + dayIndex);
   const today = new Date(); today.setHours(0,0,0,0);
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
   const target = new Date(d); target.setHours(0,0,0,0);
@@ -124,7 +138,8 @@ const COMP_DAY = [['🎉 DAG VOLTOOID!','Jochem pakt het helemaal af!'],['🏅 K
 
 // ===== STATE =====
 let currentUser = null;
-let currentWeek = parseInt(localStorage.getItem('currentWeek') ?? '0') || 0;
+const _storedWeek = localStorage.getItem('currentWeek');
+let currentWeek = _storedWeek !== null ? (parseInt(_storedWeek) || 0) : getActualCurrentWeek();
 let dbState = {}; // { 'w1_d0': { done, km, gevoel, sessions_json } }
 let localSchedule = {}; // overridden sessions per week/day
 let authMode = 'login';
@@ -367,6 +382,9 @@ function renderWeekNav() {
   document.getElementById('week-counter').textContent = currentWeek === 0 ? '0 / 12' : currentWeek + ' / 12';
   document.getElementById('btn-prev').disabled = currentWeek <= 0;
   document.getElementById('btn-next').disabled = currentWeek >= 12;
+  // "Nu" knop: verberg als je al op de huidige week bent
+  const nowBtn = document.querySelector('.wn-today-btn');
+  if (nowBtn) nowBtn.style.visibility = currentWeek === getActualCurrentWeek() ? 'hidden' : 'visible';
 }
 
 function renderProgress() {
@@ -432,6 +450,7 @@ function renderDays() {
         <div class="rest-icon">😴</div>
         <div>Rustdag</div>
         <div style="font-size:0.7rem;margin-top:0.2rem;color:#555;">Herstel is ook training</div>
+        <button class="complete-btn${ds.done ? ' done' : ''}" onclick="toggleDone(${di})">${ds.done ? '✓ Rust gehad!' : 'Markeer als gedaan'}</button>
       </div>`;
     } else if (day.type === 'fietsen') {
       bodyHTML = `<div class="rest-body">
@@ -593,6 +612,15 @@ function changeWeek(d) {
   render();
 }
 
+function goToCurrentWeek() {
+  const actual = getActualCurrentWeek();
+  if (currentWeek === actual) return;
+  currentWeek = actual;
+  localStorage.setItem('currentWeek', actual);
+  render();
+  toast('📅 Huidige week', `Terug naar week ${actual}`);
+}
+
 // ===== EDIT SESSION =====
 function openEdit(di, si) {
   document.getElementById(`edit-form-${di}-${si}`).classList.add('open');
@@ -674,11 +702,12 @@ const PAGE_TITLES = {
   voeding: '← <span>VOEDING</span>',
   data: '← DATA & <span>STATS</span>',
   reflecties: '← <span>REFLECTIES</span>',
+  dagboek: '← <span>DAGBOEK</span>',
 };
 
 // ===== PAGE NAV =====
 function showPage(page) {
-  const pages = ['home', 'training', 'voeding', 'data', 'reflecties'];
+  const pages = ['home', 'training', 'voeding', 'data', 'reflecties', 'dagboek'];
   pages.forEach(p => {
     const el = document.getElementById('page-' + p);
     if (el) el.style.display = p === page ? 'block' : 'none';
@@ -699,6 +728,7 @@ function showPage(page) {
   if (page === 'home') loadHomeData();
   if (page === 'data') loadRunData();
   if (page === 'reflecties') loadReflections();
+  if (page === 'dagboek') loadDagboek();
 }
 
 // ===== HOME PAGE =====
@@ -1101,9 +1131,156 @@ function confetti() {
 })();
 
 
+// ===== DAGBOEK =====
+let dagboekLoaded = false;
+let dagboekEntries = [];
+
+async function loadDagboek() {
+  dagboekLoaded = false; // altijd herladen zodat nieuwe entries zichtbaar zijn
+  const container = document.getElementById('dagboek-content');
+  if (!container) return;
+  container.innerHTML = '<div class="reflect-empty">Laden...</div>';
+
+  const { data, error } = await sb.from('dagboek')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('entry_date', { ascending: false })
+    .limit(100);
+
+  dagboekEntries = data || [];
+  renderDagboek();
+}
+
+function renderDagboek() {
+  const container = document.getElementById('dagboek-content');
+  if (!container) return;
+
+  // Header met toevoeg-knop
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const hasToday = dagboekEntries.some(e => e.entry_date === todayStr);
+
+  let html = `<div class="dagboek-header">
+    <div class="dagboek-title-row">
+      <h2 class="dagboek-h2">Mijn Dagboek</h2>
+      <button class="dagboek-add-btn" onclick="openDagboekEditor(null)">${hasToday ? '+ Nieuwe entry' : '+ Vandaag schrijven'}</button>
+    </div>
+    <p class="dagboek-subtitle">Wat heb je vandaag geleerd of bedacht?</p>
+  </div>`;
+
+  if (!dagboekEntries.length) {
+    html += '<div class="reflect-empty">Nog geen dagboek-entries. Schrijf je eerste!</div>';
+  } else {
+    html += dagboekEntries.map(entry => {
+      const d = new Date(entry.entry_date + 'T12:00:00');
+      const dateLabel = d.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      const preview = entry.content ? entry.content.slice(0, 120) + (entry.content.length > 120 ? '...' : '') : '';
+      const moodEmoji = { goed: '😊', neutraal: '😐', zwaar: '😓', geweldig: '🔥' }[entry.mood] || '';
+      return `<div class="dagboek-card" onclick="openDagboekEditor('${entry.id}')">
+        <div class="dagboek-card-top">
+          <div class="dagboek-card-date">${dateLabel}</div>
+          <div class="dagboek-card-mood">${moodEmoji}</div>
+        </div>
+        ${entry.title ? `<div class="dagboek-card-title">${entry.title}</div>` : ''}
+        <div class="dagboek-card-preview">${preview || '<em style="color:var(--muted)">Geen tekst...</em>'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  container.innerHTML = html;
+}
+
+function openDagboekEditor(id) {
+  const modal = document.getElementById('dagboek-modal');
+  const entry = id ? dagboekEntries.find(e => e.id === id) : null;
+
+  document.getElementById('dagboek-modal-title').textContent = entry ? 'Entry bewerken' : 'Nieuwe entry';
+  document.getElementById('dagboek-entry-date').value = entry ? entry.entry_date : new Date().toISOString().slice(0, 10);
+  document.getElementById('dagboek-entry-title').value = entry ? (entry.title || '') : '';
+  document.getElementById('dagboek-entry-content').value = entry ? (entry.content || '') : '';
+  const mood = entry ? (entry.mood || 'neutraal') : 'neutraal';
+  document.getElementById('dagboek-entry-mood').value = mood;
+  document.querySelectorAll('input[name="dagboek-mood"]').forEach(r => {
+    r.checked = r.value === mood;
+    r.onchange = () => { document.getElementById('dagboek-entry-mood').value = r.value; };
+  });
+  document.getElementById('dagboek-entry-id').value = entry ? entry.id : '';
+
+  // Verwijderknop alleen tonen bij bestaande entry
+  const deleteBtn = document.getElementById('dagboek-delete-btn');
+  if (deleteBtn) deleteBtn.style.display = entry ? 'block' : 'none';
+
+  modal.classList.add('open');
+  document.getElementById('dagboek-modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('dagboek-entry-content').focus(), 100);
+}
+
+function closeDagboekEditor() {
+  document.getElementById('dagboek-modal').classList.remove('open');
+  document.getElementById('dagboek-modal-overlay').classList.remove('open');
+}
+
+async function saveDagboekEntry() {
+  const id = document.getElementById('dagboek-entry-id').value;
+  const date = document.getElementById('dagboek-entry-date').value;
+  const title = document.getElementById('dagboek-entry-title').value.trim();
+  const content = document.getElementById('dagboek-entry-content').value.trim();
+  const mood = document.getElementById('dagboek-entry-mood').value;
+
+  if (!date) { toast('⚠️ Datum', 'Vul een datum in.'); return; }
+  if (!content && !title) { toast('⚠️ Leeg', 'Schrijf iets in je dagboek.'); return; }
+
+  const btn = document.getElementById('dagboek-save-btn');
+  btn.disabled = true; btn.textContent = 'Opslaan...';
+
+  const row = {
+    user_id: currentUser.id,
+    entry_date: date,
+    title: title || null,
+    content: content || null,
+    mood: mood || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  let error;
+  if (id) {
+    ({ error } = await sb.from('dagboek').update(row).eq('id', id).eq('user_id', currentUser.id));
+  } else {
+    ({ error } = await sb.from('dagboek').insert(row));
+  }
+
+  btn.disabled = false; btn.textContent = 'Opslaan';
+
+  if (error) { toast('❌ Fout', error.message); return; }
+
+  closeDagboekEditor();
+  toast('✅ Opgeslagen!', 'Dagboek-entry opgeslagen.');
+  await loadDagboek();
+}
+
+async function deleteDagboekEntry() {
+  const id = document.getElementById('dagboek-entry-id').value;
+  if (!id) return;
+  if (!confirm('Weet je zeker dat je deze entry wilt verwijderen?')) return;
+
+  const { error } = await sb.from('dagboek').delete().eq('id', id).eq('user_id', currentUser.id);
+  if (error) { toast('❌ Fout', error.message); return; }
+
+  closeDagboekEditor();
+  toast('🗑️ Verwijderd', 'Entry verwijderd.');
+  await loadDagboek();
+}
+
 // ===== INIT =====
 window.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('auth-screen').style.display !== 'none') submitAuth();
+  // Pijltjestoetsen voor weeknavigatie op PC
+  if (document.getElementById('app')?.style.display !== 'none') {
+    const training = document.getElementById('page-training');
+    if (training && training.style.display !== 'none') {
+      if (e.key === 'ArrowRight') changeWeek(1);
+      if (e.key === 'ArrowLeft') changeWeek(-1);
+    }
+  }
 });
 
 (async () => {

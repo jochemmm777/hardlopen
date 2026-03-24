@@ -57,3 +57,28 @@ create policy "Users can manage own progress"
 on progress for all
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
+
+-- =============================================
+-- DAGBOEK TABLE (voor dagboek-notities)
+-- =============================================
+
+create table dagboek (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users not null,
+  entry_date date not null,
+  title text,
+  content text,
+  mood text check (mood in ('geweldig', 'goed', 'neutraal', 'zwaar')),
+  updated_at timestamptz default now(),
+  created_at timestamptz default now()
+);
+
+alter table dagboek enable row level security;
+
+create policy "Users can manage own dagboek"
+on dagboek for all
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+-- Index voor snelle lookups per datum
+create index dagboek_user_date_idx on dagboek(user_id, entry_date desc);
