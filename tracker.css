@@ -179,6 +179,37 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 }
 .btn-pause:active, .btn-stop:active { transform: scale(0.97); }
 
+/* Stop-bevestiging rij */
+.controls-confirm {
+  animation: shake-in 0.25s ease;
+}
+@keyframes shake-in {
+  0%   { transform: translateX(-6px); }
+  25%  { transform: translateX(6px); }
+  50%  { transform: translateX(-4px); }
+  75%  { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+.btn-cancel-stop {
+  flex: 1; background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: 14px; padding: 1rem;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem;
+  letter-spacing: 0.06em; cursor: pointer;
+}
+.btn-confirm-stop {
+  flex: 1.4; background: #c0392b; color: #fff;
+  border: none; border-radius: 14px; padding: 1rem;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem;
+  letter-spacing: 0.06em; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(192,57,43,0.5);
+  animation: pulse-red 0.8s ease infinite alternate;
+}
+@keyframes pulse-red {
+  from { box-shadow: 0 4px 16px rgba(192,57,43,0.4); }
+  to   { box-shadow: 0 4px 28px rgba(192,57,43,0.85); }
+}
+.btn-cancel-stop:active, .btn-confirm-stop:active { transform: scale(0.97); }
+
 .btn-weight {
   background: var(--card); border: 1px solid var(--border);
   border-radius: 10px; padding: 0.6rem 0.75rem;

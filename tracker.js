@@ -91,6 +91,7 @@ let routePolylines = []; // gekleurde segmenten
 let kmMarkers = []; // km-marker divIcons op de kaart
 let watchId = null;
 let tracking = false, paused = false;
+let stopConfirmTimer = null, stopCountdownInterval = null;
 let routeCoords = [], lastPoint = null; // routeCoords: [[lat,lng,colorIdx],...]
 let recentPoints = []; // voor 30s smooth pace
 let totalDistanceKm = 0;
@@ -398,6 +399,41 @@ function togglePause() {
     document.getElementById('btn-pause').textContent = 'PAUZE';
     toast('▶️ Hervat', '');
   }
+}
+
+function requestStop() {
+  // Eerste druk op STOP: vraag om bevestiging binnen 5 seconden
+  document.getElementById('controls-active').style.display = 'none';
+  document.getElementById('controls-confirm').style.display = 'flex';
+  let remaining = 5;
+  document.getElementById('stop-countdown').textContent = remaining;
+
+  stopCountdownInterval = setInterval(() => {
+    remaining--;
+    const el = document.getElementById('stop-countdown');
+    if (el) el.textContent = remaining;
+    if (remaining <= 0) cancelStop();
+  }, 1000);
+
+  stopConfirmTimer = setTimeout(() => cancelStop(), 5500);
+}
+
+function cancelStop() {
+  clearInterval(stopCountdownInterval);
+  clearTimeout(stopConfirmTimer);
+  stopCountdownInterval = null;
+  stopConfirmTimer = null;
+  document.getElementById('controls-confirm').style.display = 'none';
+  document.getElementById('controls-active').style.display = 'flex';
+}
+
+function confirmStop() {
+  clearInterval(stopCountdownInterval);
+  clearTimeout(stopConfirmTimer);
+  stopCountdownInterval = null;
+  stopConfirmTimer = null;
+  document.getElementById('controls-confirm').style.display = 'none';
+  stopRun();
 }
 
 function stopRun() {
