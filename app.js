@@ -1,3 +1,6 @@
+// ===== VERSIE =====
+const APP_VERSION = '1.5.0';
+
 // ===== SUPABASE INIT =====
 const SUPABASE_URL = 'https://tbvdpvqteawevfkwknys.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MIkAatqn4V3R813p8RqYmQ_ZzBN3NMb';
@@ -181,6 +184,7 @@ function openSettings() {
   document.getElementById('settings-overlay').classList.add('open');
   document.getElementById('sp-name').value = userProfile.name || '';
   document.getElementById('sp-status').value = userProfile.status || '';
+  document.getElementById('sp-version').textContent = 'Versie ' + APP_VERSION;
   pendingAvatarFile = null;
   renderSettingsAvatar(userProfile.avatar_url || null);
   applyTheme(localStorage.getItem('theme') || 'dark');

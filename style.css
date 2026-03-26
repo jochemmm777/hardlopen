@@ -1278,6 +1278,14 @@ html[data-theme="light"] .ho-bar { background: #ddd; }
 }
 .sp-delete-btn:hover { color: #ff6b6b; }
 
+.sp-version {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 1rem;
+  letter-spacing: 0.04em;
+}
+
 .sp-delete-box {
   background: #2a1010;
   border: 1px solid #5a2020;
