@@ -46,6 +46,11 @@ create table progress (
 
 alter table progress enable row level security;
 
+create policy "Users can manage own progress"
+on progress for all
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
 -- =============================================
 -- MIGRATIES (voor bestaande databases)
 -- =============================================
@@ -53,10 +58,10 @@ alter table progress enable row level security;
 -- Voeg activity_type toe aan bestaande runs tabel:
 -- alter table runs add column if not exists activity_type text not null default 'lopen';
 
-create policy "Users can manage own progress"
-on progress for all
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+-- Herstel RLS als opslaan niet werkt (voer dit uit in Supabase SQL editor):
+-- drop policy if exists "Users can manage own progress" on progress;
+-- create policy "Users can manage own progress" on progress for all
+--   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- =============================================
 -- DAGBOEK TABLE (voor dagboek-notities)

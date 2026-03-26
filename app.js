@@ -102,16 +102,25 @@ const BASE_WEEKS = [
    {day:'Zondag',type:'fietsen',sessions:[{name:'Fietsen',detail:'20–60 min rustig'}]}],
 ];
 
-const START_DATE = new Date(2026, 2, 24); // 24 maart 2026 = week 1 maandag
-const WEEK0_START = new Date(2026, 2, 19); // 19 maart 2026 = week 0 maandag
+const START_DATE = new Date(2026, 2, 23); // 23 maart 2026 = week 1 maandag (ma)
+const WEEK0_START = new Date(2026, 2, 16); // 16 maart 2026 = week 0 maandag (ma)
 
 function getActualCurrentWeek() {
-  const startW1 = new Date(2026, 2, 24); startW1.setHours(0,0,0,0);
-  const startW0 = new Date(2026, 2, 19); startW0.setHours(0,0,0,0);
+  const startW1 = new Date(2026, 2, 23); startW1.setHours(0,0,0,0); // 23 maart = maandag
+  const startW0 = new Date(2026, 2, 16); startW0.setHours(0,0,0,0); // 16 maart = maandag
   const today = new Date(); today.setHours(0,0,0,0);
   if (today < startW0) return 0;
   if (today < startW1) return 0; // week 0 periode
   return Math.min(Math.floor((today - startW1) / 604800000) + 1, 12);
+}
+
+function isFutureDay(week, dayIndex) {
+  const base = week === 0 ? new Date(WEEK0_START) : new Date(START_DATE);
+  if (week > 1) base.setDate(base.getDate() + (week - 1) * 7);
+  base.setDate(base.getDate() + dayIndex);
+  const today = new Date(); today.setHours(0,0,0,0);
+  base.setHours(0,0,0,0);
+  return base > today;
 }
 
 function getDayDate(week, dayIndex) {
@@ -346,6 +355,7 @@ async function loadState() {
 }
 
 async function saveRow(week, dayIdx, patch) {
+  if (!currentUser) { toast('❌ Niet ingelogd', 'Log opnieuw in om op te slaan.'); return; }
   const key = `w${week}_d${dayIdx}`;
   dbState[key] = { ...dbState[key], ...patch };
   const row = {
@@ -356,7 +366,11 @@ async function saveRow(week, dayIdx, patch) {
     gevoel: dbState[key].gevoel || null,
     sessions_json: dbState[key].sessions_json || null,
   };
-  await sb.from('progress').upsert(row, { onConflict: 'user_id,week,day_index' });
+  const { error } = await sb.from('progress').upsert(row, { onConflict: 'user_id,week,day_index' });
+  if (error) {
+    console.error('saveRow fout:', error);
+    toast('❌ Opslaan mislukt', error.message || 'Controleer je verbinding.');
+  }
 }
 
 function getDs(week, dayIdx) {
@@ -439,6 +453,8 @@ function renderDays() {
   grid.innerHTML = '';
 
   week.forEach((day, di) => {
+    if (isFutureDay(currentWeek, di)) return; // verberg nog niet begonnen dagen
+
     const ds = getDs(currentWeek, di);
     const sessions = getSessions(currentWeek, di);
     const card = document.createElement('div');
