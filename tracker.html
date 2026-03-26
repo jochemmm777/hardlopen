@@ -29,10 +29,12 @@
   <div class="auth-box">
     <h1 class="auth-title">HARDLOOP<br><span>TRACKER</span></h1>
     <p class="auth-sub">Log in om je runs op te slaan</p>
-    <input class="auth-input" type="email" id="auth-email" placeholder="E-mailadres">
-    <input class="auth-input" type="password" id="auth-password" placeholder="Wachtwoord">
-    <button class="auth-btn" id="auth-submit" onclick="submitAuth()">Inloggen</button>
-    <div id="auth-error" class="auth-error"></div>
+    <form id="auth-form" onsubmit="submitAuth(); return false;" autocomplete="on">
+      <input class="auth-input" type="email" id="auth-email" name="email" placeholder="E-mailadres" autocomplete="username">
+      <input class="auth-input" type="password" id="auth-password" name="password" placeholder="Wachtwoord" autocomplete="current-password">
+      <button class="auth-btn" id="auth-submit" type="submit">Inloggen</button>
+      <div id="auth-error" class="auth-error"></div>
+    </form>
   </div>
 </div>
 

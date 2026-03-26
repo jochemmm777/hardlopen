@@ -20,15 +20,15 @@
       <button class="auth-tab active" onclick="switchTab('login')">Inloggen</button>
       <button class="auth-tab" onclick="switchTab('register')">Registreren</button>
     </div>
-    <div id="auth-form">
-      <input class="auth-input" type="email" id="auth-email" placeholder="E-mailadres" autocomplete="email">
-      <input class="auth-input" type="password" id="auth-password" placeholder="Wachtwoord" autocomplete="current-password">
+    <form id="auth-form" onsubmit="submitAuth(); return false;" autocomplete="on">
+      <input class="auth-input" type="email" id="auth-email" name="email" placeholder="E-mailadres" autocomplete="username">
+      <input class="auth-input" type="password" id="auth-password" name="password" placeholder="Wachtwoord" autocomplete="current-password">
       <div id="auth-name-wrap" style="display:none">
-        <input class="auth-input" type="text" id="auth-name" placeholder="Jouw naam">
+        <input class="auth-input" type="text" id="auth-name" name="name" placeholder="Jouw naam" autocomplete="name">
       </div>
-      <button class="auth-btn" id="auth-submit" onclick="submitAuth()">Inloggen</button>
+      <button class="auth-btn" id="auth-submit" type="submit">Inloggen</button>
       <div id="auth-error" class="auth-error"></div>
-    </div>
+    </form>
   </div>
 </div>
 

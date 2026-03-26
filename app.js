@@ -289,6 +289,7 @@ function switchTab(mode) {
   document.getElementById('auth-name-wrap').style.display = mode === 'register' ? 'block' : 'none';
   document.getElementById('auth-submit').textContent = mode === 'login' ? 'Inloggen' : 'Account aanmaken';
   document.getElementById('auth-error').textContent = '';
+  document.getElementById('auth-email').autocomplete = 'username';
   document.getElementById('auth-password').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
 }
 
